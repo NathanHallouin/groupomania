@@ -205,7 +205,13 @@ export const validateQuery = (schema: any) => {
       return;
     }
 
-    req.query = value;
+    // Express 5 : req.query est en lecture seule (getter) → redéfinir la propriété.
+    Object.defineProperty(req, 'query', {
+      value,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
     next();
   };
 };

@@ -368,9 +368,16 @@ export class ValidationMiddleware {
       req.body = ValidationMiddleware.sanitizeObject(req.body);
     }
 
-    // Sanitize query parameters
+    // Sanitize query parameters.
+    // En Express 5, req.query est en lecture seule (getter) : on redéfinit la
+    // propriété au lieu de la réassigner directement.
     if (req.query && typeof req.query === 'object') {
-      req.query = ValidationMiddleware.sanitizeObject(req.query);
+      Object.defineProperty(req, 'query', {
+        value: ValidationMiddleware.sanitizeObject(req.query),
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
     }
 
     next();

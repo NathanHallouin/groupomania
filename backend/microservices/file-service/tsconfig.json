@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "ignoreDeprecations": "6.0",
         "target": "ES2022",
         "module": "commonjs",
         "lib": [
@@ -86,9 +87,6 @@
         "**/*.spec.ts"
     ],
     "ts-node": {
-        "require": [
-            "tsconfig-paths/register"
-        ],
         "files": true,
         "experimentalSpecifierResolution": "node"
     }

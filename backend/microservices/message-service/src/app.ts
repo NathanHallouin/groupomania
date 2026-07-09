@@ -88,7 +88,7 @@ class MessageServiceApp {
     });
 
     // 404 route
-    this.app.use('*', (req, res) => {
+    this.app.use((req, res) => {
       res.status(404).json({
         success: false,
         message: 'Endpoint not found',

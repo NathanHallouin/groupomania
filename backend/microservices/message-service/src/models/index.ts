@@ -58,52 +58,11 @@ sequelize.addModels([
  * Initialize model associations
  */
 export const initializeAssociations = (): void => {
-  // Channel -> Message (A channel has many messages)
-  Channel.hasMany(Message, {
-    foreignKey: 'channelId',
-    as: 'messages',
-    onDelete: 'CASCADE',
-  });
-
-  Message.belongsTo(Channel, {
-    foreignKey: 'channelId',
-    as: 'channel',
-  });
-
-  // Message -> Message (Replies and threads)
-  Message.hasMany(Message, {
-    foreignKey: 'parentId',
-    as: 'replies',
-  });
-
-  Message.belongsTo(Message, {
-    foreignKey: 'parentId',
-    as: 'parent',
-  });
-
-  // Channel -> ChannelMember (A channel has many members)
-  Channel.hasMany(ChannelMember, {
-    foreignKey: 'channelId',
-    as: 'members',
-    onDelete: 'CASCADE',
-  });
-
-  ChannelMember.belongsTo(Channel, {
-    foreignKey: 'channelId',
-    as: 'channel',
-  });
-
-  // Message -> Reaction (A message has many reactions)
-  Message.hasMany(Reaction, {
-    foreignKey: 'messageId',
-    as: 'reactions',
-    onDelete: 'CASCADE',
-  });
-
-  Reaction.belongsTo(Message, {
-    foreignKey: 'messageId',
-    as: 'message',
-  });
+  // Les associations sont déjà déclarées via les décorateurs sequelize-typescript
+  // dans les modèles (@HasMany/@BelongsTo sur Channel, Message, ChannelMember,
+  // Reaction) avec les mêmes alias : messages, members, channel, parent, replies,
+  // reactions. Les redéclarer ici provoquait une SequelizeAssociationError
+  // (« alias used in two separate associations »). No-op volontaire.
 };
 
 /**

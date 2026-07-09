@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import winston from 'winston';
 
 /**
@@ -88,7 +88,7 @@ export class RateLimitMiddleware {
     max: 10, // 10 creations per minute
     keyGenerator: (req: Request) => {
       // Use user ID if available, otherwise IP
-      return (req as any).user?.userId?.toString() || req.ip || 'unknown';
+      return (req as any).user?.userId?.toString() || ipKeyGenerator(req.ip || '');
     },
     handler: (req: Request, res: Response) => {
       RateLimitMiddleware.logger.warn('Rate limit exceeded - Creation', {
@@ -113,7 +113,7 @@ export class RateLimitMiddleware {
     windowMs: 60 * 1000, // 1 minute
     max: 30, // 30 updates per minute
     keyGenerator: (req: Request) => {
-      return (req as any).user?.userId?.toString() || req.ip || 'unknown';
+      return (req as any).user?.userId?.toString() || ipKeyGenerator(req.ip || '');
     },
     handler: (req: Request, res: Response) => {
       RateLimitMiddleware.logger.warn('Rate limit exceeded - Update', {
@@ -138,7 +138,7 @@ export class RateLimitMiddleware {
     windowMs: 60 * 1000, // 1 minute
     max: 100, // 100 searches per minute
     keyGenerator: (req: Request) => {
-      return (req as any).user?.userId?.toString() || req.ip || 'unknown';
+      return (req as any).user?.userId?.toString() || ipKeyGenerator(req.ip || '');
     },
     handler: (req: Request, res: Response) => {
       res.status(429).json({
@@ -156,7 +156,7 @@ export class RateLimitMiddleware {
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 50, // 50 uploads per hour
     keyGenerator: (req: Request) => {
-      return (req as any).user?.userId?.toString() || req.ip || 'unknown';
+      return (req as any).user?.userId?.toString() || ipKeyGenerator(req.ip || '');
     },
     handler: (req: Request, res: Response) => {
       RateLimitMiddleware.logger.warn('Rate limit exceeded - Upload', {

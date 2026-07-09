@@ -54,10 +54,7 @@ export class FileShareModel extends Model<FileShare> implements FileShare {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    // Relation logique vers l'utilisateur (autre service) — pas de FK base.
   })
   sharedBy!: number;
 
@@ -65,10 +62,7 @@ export class FileShareModel extends Model<FileShare> implements FileShare {
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    // Relation logique vers l'utilisateur (autre service) — pas de FK base.
   })
   sharedWith?: number;
 

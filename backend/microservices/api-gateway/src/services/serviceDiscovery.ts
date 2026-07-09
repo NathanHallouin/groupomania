@@ -1,4 +1,4 @@
-import Redis from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import winston from 'winston';
 
 /**
@@ -25,7 +25,7 @@ export interface ServiceInfo {
  */
 export class ServiceDiscovery {
   private services: Map<string, ServiceInfo[]> = new Map();
-  private redisClient: Redis.RedisClientType;
+  private redisClient: RedisClientType;
   private logger: winston.Logger;
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
@@ -36,9 +36,9 @@ export class ServiceDiscovery {
       transports: [new winston.transports.Console()]
     });
 
-    this.redisClient = Redis.createClient({
+    this.redisClient = createClient({
       url: process.env.REDIS_URL || 'redis://localhost:6379'
-    });
+    }) as RedisClientType;
   }
 
   /**

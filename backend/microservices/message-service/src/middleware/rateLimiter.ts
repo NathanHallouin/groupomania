@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 /**
@@ -16,10 +16,6 @@ export const rateLimiter = rateLimit({
   skip: (req: Request) => {
     // Skip rate limiting for health check requests
     return req.path === '/api/health' || req.path === '/health';
-  },
-  keyGenerator: (req: Request) => {
-    // Use the real IP behind proxies
-    return req.ip || req.connection.remoteAddress || 'unknown';
   },
 });
 
@@ -65,8 +61,8 @@ export const messageRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    // Use the user ID if available, otherwise IP
-    return req.user?.userId?.toString() || req.ip || 'unknown';
+    // Use the user ID if available, otherwise IP (IPv6-safe)
+    return req.user?.userId?.toString() || ipKeyGenerator(req.ip || '');
   },
 });
 

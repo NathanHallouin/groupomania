@@ -102,7 +102,7 @@ class UserServiceApp {
     });
 
     // 404 route
-    this.app.all('*', (req, res) => {
+    this.app.use((req, res) => {
       res.status(404).json({
         success: false,
         message: `Route ${req.method} ${req.originalUrl} not found`,

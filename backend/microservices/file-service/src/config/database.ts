@@ -34,12 +34,9 @@ export const sequelize = new Sequelize({
   // Performance options
   benchmark: config.server.env === 'development',
   
-  // Models configuration
-  modelPaths: [__dirname + '/../models'],
-  modelMatch: (filename, member) => {
-    return filename.substring(0, filename.indexOf('.model')) === member.toLowerCase();
-  },
-  
+  // Les modèles sont enregistrés explicitement via addModels() dans models/index.ts
+  // (les fichiers ne suivent pas la convention *.model.ts attendue par modelMatch).
+
   // Global hooks configuration
   hooks: {
     beforeConnect: () => {

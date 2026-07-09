@@ -131,10 +131,8 @@ export class File extends Model<FileAttributes> implements FileAttributes {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    // Pas de FK base de données vers `users` : en microservices, l'identité vit
+    // dans l'auth/user-service (autre base). La relation reste logique.
   })
   uploadedBy!: number;
 

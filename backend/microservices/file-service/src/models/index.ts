@@ -12,14 +12,10 @@ sequelize.addModels([
  * Initialiser les associations entre modèles
  */
 export const initializeAssociations = (): void => {
-  // FileShare -> File (Un partage appartient à un fichier)
-  FileShareModel.belongsTo(File, {
-    foreignKey: 'fileId',
-    as: 'file',
-    onDelete: 'CASCADE',
-  });
-
-  // File -> FileShare (Un fichier peut avoir plusieurs partages)
+  // Le côté FileShare -> File (alias 'file') est déjà déclaré via le décorateur
+  // @BelongsTo(() => File) dans FileShare.ts. On ne déclare ici que le côté
+  // File -> FileShare (alias 'shares'), qui n'a pas de décorateur, pour éviter
+  // une SequelizeAssociationError sur l'alias 'file'.
   File.hasMany(FileShareModel, {
     foreignKey: 'fileId',
     as: 'shares',

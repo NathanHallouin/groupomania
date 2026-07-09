@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import dotenv from 'dotenv';
 import winston from 'winston';
 
@@ -131,41 +131,28 @@ app.get('/metrics', AuthMiddleware.authenticate, AuthMiddleware.requireAdmin, as
 });
 
 /**
- * Authentication routes (without proxy, handled directly)
+ * Service targets (surchargeables via variables d'environnement).
+ * Chaque microservice sert déjà ses routes sous le préfixe `/api/*`, donc aucun
+ * pathRewrite n'est nécessaire : le chemin reçu est transmis tel quel.
  */
-app.post('/auth/login', 
-  RateLimitMiddleware.auth,
-  ValidationMiddleware.authValidation,
-  async (req: express.Request, res: express.Response) => {
-    try {
-      // Authentication simulation for now
-      const result = { token: 'simulated-token', user: { id: 1, email: req.body.email } };
-      res.json(result);
-    } catch (error) {
-      logger.error('Authentication failed', { error, email: req.body.email });
-      res.status(401).json({ error: 'Authentication failed' });
-    }
-  }
-);
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+const MESSAGE_SERVICE_URL = process.env.MESSAGE_SERVICE_URL || 'http://localhost:3003';
+const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3004';
 
-app.post('/auth/register',
-  RateLimitMiddleware.auth,
-  ValidationMiddleware.registrationValidation,
-  async (req: express.Request, res: express.Response) => {
-    try {
-      // Registration simulation for now
-      const result = { message: 'User registered successfully', userId: Date.now() };
-      res.status(201).json(result);
-    } catch (error) {
-      logger.error('Registration failed', { error, email: req.body.email });
-      res.status(400).json({ error: 'Registration failed' });
-    }
-  }
-);
+// Express retire le préfixe de montage (ex. `/api/auth`) avant le proxy. Comme
+// chaque microservice sert ses routes sous `/api/<x>`, on inclut ce préfixe dans
+// la cible : http-proxy-middleware ré-ajoute le chemin restant (prependPath).
 
-/**
- * Protected routes with proxy to microservices (simplified)
- */
+// Authentication service (login, register, refresh, profile…) — routes publiques
+app.use('/api/auth',
+  RateLimitMiddleware.auth,
+  createProxyMiddleware({
+    target: `${AUTH_SERVICE_URL}/api/auth`,
+    changeOrigin: true,
+    on: { proxyReq: fixRequestBody },
+  })
+);
 
 // Users service
 app.use('/api/users',
@@ -176,33 +163,39 @@ app.use('/api/users',
     'default': { windowMs: 60000, max: 50 }
   }),
   createProxyMiddleware({
-    target: 'http://localhost:3001', // Temporary URL
+    target: `${USER_SERVICE_URL}/api/users`,
     changeOrigin: true,
-    pathRewrite: { '^/api/users': '/users' }
+    on: { proxyReq: fixRequestBody },
   })
 );
 
-// Messages service
+// Messages & channels (même microservice, préfixes distincts)
 app.use('/api/messages',
   AuthMiddleware.authenticate,
   RateLimitMiddleware.creation,
-  ValidationMiddleware.paginationValidation,
   createProxyMiddleware({
-    target: 'http://localhost:3002', // Temporary URL
+    target: `${MESSAGE_SERVICE_URL}/api/messages`,
     changeOrigin: true,
-    pathRewrite: { '^/api/messages': '/messages' }
+    on: { proxyReq: fixRequestBody },
+  })
+);
+app.use('/api/channels',
+  AuthMiddleware.authenticate,
+  createProxyMiddleware({
+    target: `${MESSAGE_SERVICE_URL}/api/channels`,
+    changeOrigin: true,
+    on: { proxyReq: fixRequestBody },
   })
 );
 
-// File upload routes
-app.use('/api/upload',
+// File service (upload, partage…)
+app.use('/api/files',
   AuthMiddleware.authenticate,
   RateLimitMiddleware.upload,
-  ValidationMiddleware.fileUploadValidation,
   createProxyMiddleware({
-    target: 'http://localhost:3003', // Temporary URL
+    target: `${FILE_SERVICE_URL}/api/files`,
     changeOrigin: true,
-    pathRewrite: { '^/api/upload': '/upload' }
+    on: { proxyReq: fixRequestBody },
   })
 );
 
@@ -287,7 +280,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // Route 404
-app.use('*', (req, res) => {
+app.use((req, res) => {
   logger.warn('Route not found', { path: req.path, method: req.method });
   res.status(404).json({
     error: 'Route not found',
