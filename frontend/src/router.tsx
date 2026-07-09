@@ -273,6 +273,12 @@ export const router = createBrowserRouter([
       },
       {
         path: 'settings',
+        loader: async () => {
+          const { user } = useAuthStore.getState();
+          if (!user) throw redirect('/login');
+          const res = await usersApi.getById(user.id).catch(() => null);
+          return { user: res?.data?.user ?? null };
+        },
         lazy: () => import('./pages/SettingsPage').then(m => ({ Component: m.SettingsPage })),
       },
     ],

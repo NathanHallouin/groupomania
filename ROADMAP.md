@@ -162,7 +162,12 @@ avatar multi-tailles, `search`, `departments`, `stats`. Frontend : `UsersPage`,
   est conservée). `position`/`department` restent réservés aux admins côté API.
 - ✅ **FAIT** — **Jauge de complétude** du profil : barre de progression sur la
   `ProfilePage` (proportion des champs clés renseignés) avec raccourci « Compléter ».
-- 🟢⭐ Confidentialité : appliquer réellement `preferences.privacy` (showEmail/showDepartment/showLastLogin).
+- ✅ **FAIT** — Confidentialité : `preferences.privacy` **réellement appliqué** —
+  `toPublicJSON` masque email/département/dernière connexion selon les réglages
+  (`showEmail` ajouté). La `SettingsPage` charge et **persiste** les préférences
+  (notifications, confidentialité, thème, langue) via `PUT /api/users/:id`.
+  Vérifié E2E (un non-admin voit ou non l'email/département de Marie selon ses
+  réglages). Reste : appliquer thème sombre + i18n au rendu (données déjà stockées).
 
 ---
 
@@ -250,7 +255,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
 | **P1 — Rendre la messagerie vivante** ✅ | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages · ✅ §8 Notifications in-app · ✅ ajout de membre réparé · reste (optionnel) §2 DM/modération avancée |
-| **P2 — Comptes complets** ✅ | Parcours d'auth de bout en bout | ✅ §4 reset/vérif email · ✅ §5 annuaire filtrable, édition profil + jauge · reste (optionnel) §5 organigramme/confidentialité |
+| **P2 — Comptes complets** ✅ | Parcours d'auth de bout en bout | ✅ §4 reset/vérif email · ✅ §5 annuaire filtrable, édition profil + jauge, confidentialité (preferences.privacy) · reste (optionnel) §5 organigramme |
 | **P3 — Contenus riches** ✅ | Fichiers & recherche | ✅ §3 Pièces jointes (image/fichier) · ✅ §7 Recherche globale (users + canaux) · reste (optionnel) messages dans la recherche, drag & drop |
 | **P4 — Pilotage** 🚧 | Admin, modération, qualité | ✅ §6 Dashboard admin · ✅ §9 Smoke-test e2e · reste §9 tests unitaires (jest), §6 journal d'audit |
 

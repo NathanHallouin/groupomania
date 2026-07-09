@@ -166,6 +166,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
       firstName: this.firstName,
       lastName: this.lastName,
       fullName: this.fullName,
+      email: preferences.privacy.showEmail ? this.email : undefined,
       department: preferences.privacy.showDepartment ? this.department : undefined,
       position: this.position,
       role: this.role,

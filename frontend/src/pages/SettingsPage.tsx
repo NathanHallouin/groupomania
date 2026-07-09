@@ -1,17 +1,63 @@
+import { useState } from 'react';
+import { useLoaderData } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
-import { Bell, Moon, Globe, Shield, LogOut } from 'lucide-react';
+import { Bell, Moon, Globe, Shield, LogOut, Save } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { usersApi } from '../api';
+import type { User, UserPreferences } from '../types';
+
+const DEFAULTS: UserPreferences = {
+  theme: 'light',
+  language: 'fr',
+  notifications: { email: true, push: true, mentions: true, messages: true },
+  privacy: { showEmail: false, showDepartment: true, showLastLogin: false },
+};
 
 export function SettingsPage() {
-  const { logout } = useAuthStore();
+  const { user } = useLoaderData() as { user: User | null };
+  const { logout, updateUser } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
+  const [prefs, setPrefs] = useState<UserPreferences>({
+    ...DEFAULTS,
+    ...user?.preferences,
+    notifications: { ...DEFAULTS.notifications, ...user?.preferences?.notifications },
+    privacy: { ...DEFAULTS.privacy, ...user?.preferences?.privacy },
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const setNotif = (k: keyof UserPreferences['notifications'], v: boolean) =>
+    setPrefs((p) => ({ ...p, notifications: { ...p.notifications, [k]: v } }));
+  const setPrivacy = (k: keyof UserPreferences['privacy'], v: boolean) =>
+    setPrefs((p) => ({ ...p, privacy: { ...p.privacy, [k]: v } }));
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await usersApi.update(user.id, { preferences: prefs });
+      if (res.data?.user) updateUser(res.data.user);
+      setSaved(true);
+    } catch {
+      // erreur silencieuse
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+        <div className="flex items-center gap-3">
+          {saved && <span className="text-sm text-green-600">Enregistré ✓</span>}
+          <Button onClick={save} isLoading={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            Enregistrer
+          </Button>
+        </div>
+      </div>
 
       {/* Notifications */}
       <Card padding="none">
@@ -26,28 +72,32 @@ export function SettingsPage() {
             <SettingToggle
               label="Notifications par email"
               description="Recevoir des notifications par email"
-              defaultChecked
+              checked={prefs.notifications.email}
+              onChange={(v) => setNotif('email', v)}
             />
             <SettingToggle
               label="Notifications push"
               description="Recevoir des notifications dans le navigateur"
-              defaultChecked
+              checked={prefs.notifications.push}
+              onChange={(v) => setNotif('push', v)}
             />
             <SettingToggle
               label="Mentions"
               description="Être notifié quand quelqu'un vous mentionne"
-              defaultChecked
+              checked={prefs.notifications.mentions}
+              onChange={(v) => setNotif('mentions', v)}
             />
             <SettingToggle
               label="Messages directs"
               description="Être notifié pour les nouveaux messages directs"
-              defaultChecked
+              checked={prefs.notifications.messages}
+              onChange={(v) => setNotif('messages', v)}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Appearance */}
+      {/* Apparence */}
       <Card padding="none">
         <CardHeader className="px-6 pt-6">
           <div className="flex items-center gap-3">
@@ -56,23 +106,26 @@ export function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900">Thème</p>
-                <p className="text-sm text-gray-500">Choisir le thème de l'interface</p>
-              </div>
-              <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="light">Clair</option>
-                <option value="dark">Sombre</option>
-                <option value="system">Système</option>
-              </select>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Thème</p>
+              <p className="text-sm text-gray-500">Choisir le thème de l'interface</p>
             </div>
+            <select
+              value={prefs.theme}
+              onChange={(e) =>
+                setPrefs((p) => ({ ...p, theme: e.target.value as UserPreferences['theme'] }))
+              }
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="light">Clair</option>
+              <option value="dark">Sombre</option>
+            </select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Language */}
+      {/* Langue */}
       <Card padding="none">
         <CardHeader className="px-6 pt-6">
           <div className="flex items-center gap-3">
@@ -86,7 +139,11 @@ export function SettingsPage() {
               <p className="font-medium text-gray-900">Langue de l'interface</p>
               <p className="text-sm text-gray-500">Choisir la langue d'affichage</p>
             </div>
-            <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <select
+              value={prefs.language}
+              onChange={(e) => setPrefs((p) => ({ ...p, language: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
               <option value="fr">Français</option>
               <option value="en">English</option>
             </select>
@@ -94,7 +151,7 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Privacy */}
+      {/* Confidentialité */}
       <Card padding="none">
         <CardHeader className="px-6 pt-6">
           <div className="flex items-center gap-3">
@@ -107,21 +164,26 @@ export function SettingsPage() {
             <SettingToggle
               label="Afficher mon email"
               description="Permettre aux autres utilisateurs de voir mon email"
+              checked={prefs.privacy.showEmail}
+              onChange={(v) => setPrivacy('showEmail', v)}
             />
             <SettingToggle
               label="Afficher mon département"
               description="Afficher mon département sur mon profil"
-              defaultChecked
+              checked={prefs.privacy.showDepartment}
+              onChange={(v) => setPrivacy('showDepartment', v)}
             />
             <SettingToggle
               label="Afficher ma dernière connexion"
               description="Montrer quand j'étais en ligne pour la dernière fois"
+              checked={prefs.privacy.showLastLogin}
+              onChange={(v) => setPrivacy('showLastLogin', v)}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Danger zone */}
+      {/* Zone de danger */}
       <Card padding="none" className="border-red-200">
         <CardHeader className="px-6 pt-6">
           <div className="flex items-center gap-3">
@@ -137,7 +199,7 @@ export function SettingsPage() {
                 Vous serez déconnecté de tous vos appareils
               </p>
             </div>
-            <Button variant="danger" onClick={handleLogout}>
+            <Button variant="danger" onClick={() => logout()}>
               Se déconnecter
             </Button>
           </div>
@@ -150,10 +212,11 @@ export function SettingsPage() {
 interface SettingToggleProps {
   label: string;
   description: string;
-  defaultChecked?: boolean;
+  checked: boolean;
+  onChange: (value: boolean) => void;
 }
 
-function SettingToggle({ label, description, defaultChecked }: SettingToggleProps) {
+function SettingToggle({ label, description, checked, onChange }: SettingToggleProps) {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -163,7 +226,8 @@ function SettingToggle({ label, description, defaultChecked }: SettingToggleProp
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
-          defaultChecked={defaultChecked}
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
           className="sr-only peer"
         />
         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600" />

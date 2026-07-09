@@ -10,6 +10,13 @@ interface AuthenticatedRequest extends Request {
 }
 
 /**
+ * Sérialise une entité de manière défensive : les valeurs venant du cache Redis
+ * sont des objets simples (pas d'instance Sequelize, donc pas de `toJSON`).
+ */
+const serialize = (entity: any): any =>
+  entity && typeof entity.toJSON === 'function' ? entity.toJSON() : entity;
+
+/**
  * Controller for channel management
  */
 export class ChannelController {
@@ -51,7 +58,7 @@ export class ChannelController {
         success: true,
         message: 'Channel created successfully',
         data: {
-          channel: channel.toJSON(),
+          channel: serialize(channel),
         },
       });
     } catch (error: any) {
@@ -101,7 +108,7 @@ export class ChannelController {
       res.json({
         success: true,
         data: {
-          channel: channel.toJSON(),
+          channel: serialize(channel),
         },
       });
     } catch (error: any) {
@@ -125,7 +132,7 @@ export class ChannelController {
       res.json({
         success: true,
         data: {
-          channels: channels.map(channel => channel.toJSON()),
+          channels: channels.map(channel => serialize(channel)),
         },
       });
     } catch (error: any) {
@@ -176,7 +183,7 @@ export class ChannelController {
         success: true,
         message: 'Channel updated successfully',
         data: {
-          channel: channel.toJSON(),
+          channel: serialize(channel),
         },
       });
     } catch (error: any) {
@@ -260,7 +267,7 @@ export class ChannelController {
         success: true,
         message: 'Member added to channel successfully',
         data: {
-          member: member.toJSON(),
+          member: serialize(member),
         },
       });
     } catch (error: any) {
@@ -346,7 +353,7 @@ export class ChannelController {
         success: true,
         message: 'Member role updated successfully',
         data: {
-          member: member.toJSON(),
+          member: serialize(member),
         },
       });
     } catch (error: any) {
@@ -380,7 +387,7 @@ export class ChannelController {
         success: true,
         message: 'Channel joined successfully',
         data: {
-          member: member.toJSON(),
+          member: serialize(member),
         },
       });
     } catch (error: any) {
@@ -448,7 +455,7 @@ export class ChannelController {
       res.json({
         success: true,
         data: {
-          channels: result.channels.map(channel => channel.toJSON()),
+          channels: result.channels.map(channel => serialize(channel)),
           pagination: {
             page,
             limit,
