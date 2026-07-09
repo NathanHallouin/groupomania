@@ -191,4 +191,37 @@ router.post(
   asyncHandler(authController.resetPassword)
 );
 
+/**
+ * @route   POST /api/auth/verify-email
+ * @desc    Vérifier l'email d'un utilisateur avec un token
+ * @access  Public
+ */
+router.post(
+  '/verify-email',
+  [
+    body('token')
+      .notEmpty()
+      .withMessage('Le token de vérification est requis'),
+  ],
+  validationMiddleware,
+  asyncHandler(authController.verifyEmail)
+);
+
+/**
+ * @route   POST /api/auth/resend-verification
+ * @desc    Renvoyer un lien de vérification d'email
+ * @access  Public
+ */
+router.post(
+  '/resend-verification',
+  [
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Veuillez fournir un email valide'),
+  ],
+  validationMiddleware,
+  asyncHandler(authController.resendVerification)
+);
+
 export default router;

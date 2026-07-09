@@ -72,6 +72,9 @@ export class AuthController {
       // Generate tokens
       const tokens = this.tokenService.generateTokenPair(user);
 
+      // Génère un lien de vérification d'email (logué, renvoyé hors production).
+      const verifyUrl = await this.generateEmailVerification(user);
+
       // Response without the password
       const userResponse = {
         id: user.id,
@@ -81,6 +84,7 @@ export class AuthController {
         department: user.department,
         role: user.role,
         isActive: user.isActive,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
       };
 
@@ -90,6 +94,7 @@ export class AuthController {
         data: {
           user: userResponse,
           tokens,
+          ...(process.env.NODE_ENV === 'production' ? {} : { verifyUrl }),
         },
       });
     } catch (error) {
@@ -413,6 +418,75 @@ export class AuthController {
         console.error('Error during reset-password:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
       }
+    }
+  };
+
+  /**
+   * Génère et stocke (haché) un token de vérification d'email, logue le lien et
+   * le retourne. Faute de SMTP, le lien remplace l'envoi d'email.
+   */
+  private async generateEmailVerification(user: any): Promise<string> {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    await user.update({ emailVerificationToken: tokenHash } as any);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const verifyUrl = `${frontendUrl}/verify-email?token=${rawToken}`;
+    console.log(`✉️  Lien de vérification d'email pour ${user.email} : ${verifyUrl}`);
+    return verifyUrl;
+  }
+
+  /**
+   * Vérifie l'email d'un utilisateur à partir d'un token.
+   */
+  public verifyEmail = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token } = req.body;
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+      const user = await User.findOne({ where: { emailVerificationToken: tokenHash } });
+      if (!user) {
+        throw new AppError('Lien de vérification invalide ou expiré', 400);
+      }
+
+      await user.update({
+        emailVerified: true,
+        emailVerificationToken: null,
+      } as any);
+
+      res.status(200).json({ success: true, message: 'Email vérifié avec succès' });
+    } catch (error) {
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        console.error('Error during verify-email:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }
+  };
+
+  /**
+   * Renvoie un lien de vérification d'email (réponse anti-énumération).
+   */
+  public resendVerification = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ where: { email } });
+
+      const genericMessage =
+        "Si un compte non vérifié existe pour cet email, un nouveau lien a été envoyé.";
+
+      if (!user || user.emailVerified) {
+        res.status(200).json({ success: true, message: genericMessage });
+        return;
+      }
+
+      const verifyUrl = await this.generateEmailVerification(user);
+      const data = process.env.NODE_ENV === 'production' ? undefined : { verifyUrl };
+      res.status(200).json({ success: true, message: genericMessage, data });
+    } catch (error) {
+      console.error('Error during resend-verification:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
 }

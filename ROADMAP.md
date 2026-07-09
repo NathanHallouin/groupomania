@@ -127,8 +127,11 @@ ni écran** pour la vérification d'email et la réinitialisation de mot de pass
   et `ResetPasswordPage` + lien depuis le login. Faute de SMTP, le lien est logué et
   renvoyé hors production. Vérifié E2E (nouveau MDP OK, ancien rejeté, token non
   réutilisable). Reste : brancher l'envoi d'email `nodemailer`.
-- 🟡⭐⭐ **Vérification d'email** : envoi + endpoint de confirmation
-  (`emailVerificationToken` déjà présent).
+- ✅ **FAIT** — **Vérification d'email** : à l'inscription, génération d'un token
+  (haché) + lien logué/renvoyé (dev) ; endpoints `POST /api/auth/verify-email`
+  (token à usage unique → `emailVerified=true`) et `POST /api/auth/resend-verification`
+  (anti-énumération) ; page `VerifyEmailPage` (auto-vérification via le lien).
+  Vérifié E2E. Reste : brancher l'envoi d'email `nodemailer` (comme le reset).
 - 🟢⭐⭐ Feedback UI du **verrouillage de compte** (5 tentatives / 2 h déjà codé).
 - 🟢⭐ Gestion propre de l'expiration du refresh token (auto-refresh silencieux).
 - 🟡⭐ (Optionnel) MFA / TOTP par-dessus le socle existant.
@@ -219,7 +222,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
 | **P1 — Rendre la messagerie vivante** ✅ | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages · ✅ §8 Notifications in-app · ✅ ajout de membre réparé · reste (optionnel) §2 DM/modération avancée |
-| **P2 — Comptes complets** 🚧 | Parcours d'auth de bout en bout | ✅ §4 mot de passe oublié/reset · reste §4 vérification email, §5 Profils |
+| **P2 — Comptes complets** 🚧 | Parcours d'auth de bout en bout | ✅ §4 mot de passe oublié/reset · ✅ §4 vérification email · reste §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |
 

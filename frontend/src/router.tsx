@@ -50,6 +50,10 @@ export const router = createBrowserRouter([
     path: '/reset-password',
     lazy: () => import('./pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
   },
+  {
+    path: '/verify-email',
+    lazy: () => import('./pages/VerifyEmailPage').then(m => ({ Component: m.VerifyEmailPage })),
+  },
 
   // Protected routes with layout
   {

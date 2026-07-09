@@ -113,4 +113,29 @@ export const authApi = {
     });
     return response.data;
   },
+
+  /**
+   * Verifies an email address using a token from the verification link.
+   * @param token - Verification token
+   */
+  verifyEmail: async (token: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.post<ApiResponse<void>>('/auth/verify-email', {
+      token,
+    });
+    return response.data;
+  },
+
+  /**
+   * Requests a new email verification link (anti-enumeration; dev may return url).
+   * @param email - Account email
+   */
+  resendVerification: async (
+    email: string
+  ): Promise<ApiResponse<{ verifyUrl?: string }>> => {
+    const response = await apiClient.post<ApiResponse<{ verifyUrl?: string }>>(
+      '/auth/resend-verification',
+      { email }
+    );
+    return response.data;
+  },
 };
