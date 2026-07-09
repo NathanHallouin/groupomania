@@ -54,8 +54,10 @@ uniquement.
 création + édition/suppression, réactions **côté API seulement**.
 
 **Approfondir.**
-- 🟡⭐⭐⭐ **Réactions** : picker d'emoji + affichage groupé des `Reaction`
-  (like/love/laugh/wow/sad/angry) — l'API `reactions` est déjà là, pas l'UI.
+- ✅ **FAIT** — **Réactions** : composant `ReactionBar` (affichage groupé des 6
+  types + picker d'emoji, ajout/bascule/retrait) branché sur l'API et rafraîchi
+  en temps réel. Le backend n'autorise qu'une réaction par utilisateur/message
+  (l'UI bascule automatiquement).
 - 🟡⭐⭐ **Messages directs (DM)** : le type `direct` existe ; ajouter le parcours
   « écrire à un utilisateur » depuis un profil / la liste.
 - 🟡⭐⭐ **Modération de canal** : gérer les membres, promouvoir modérateur,
@@ -67,19 +69,21 @@ création + édition/suppression, réactions **côté API seulement**.
 - 🟢⭐ **Sécurité XSS** : `sanitize-html` est présent — vérifier qu'il est bien
   appliqué au rendu et à l'entrée.
 
-> **Corrections apportées (en débloquant le temps réel).** La création et l'envoi
-> passaient par des chemins cassés — désormais fonctionnels :
-> - création de canal : `ownerId` non renseigné, `type` incohérent entre le
->   validateur (`text/voice/announcement`) et l'enum du modèle
->   (`public/private/direct/group`) → aligné ; rollback tenté après commit → corrigé ;
-> - droit d'écriture basé sur une colonne `canWrite` inexistante → dérivé du `role`
->   (read_only exclu) ;
-> - lecture des messages/canaux : `include` d'associations cross-service
->   (`author`, `user`) inexistantes → retirés (l'identité vit dans un autre service).
+> **Corrections apportées (chaîne canaux/messages/réactions).** Ces chemins étaient
+> cassés — désormais fonctionnels et vérifiés :
+> - **création de canal** (`POST /api/channels` → 200) : `ownerId` non renseigné,
+>   `type` incohérent validateur↔enum du modèle → aligné (`public/private/direct/group`),
+>   rollback tenté après commit → corrigé, include `members→user`/`creator`
+>   inexistants retirés ;
+> - **envoi de message** : droit d'écriture basé sur une colonne `canWrite`
+>   inexistante → dérivé du `role` (read_only exclu) ;
+> - **réactions** : colonne `reactionType` → `type` (le nom réel), include `user`
+>   inexistant retiré, et `toSocketJSON` expose maintenant le tableau `reactions` ;
+> - **lecture messages/canaux** : includes d'associations cross-service
+>   (`author`, `user`) retirés (l'identité vit dans un autre service).
 >
-> Reste : `getChannelById` inclut encore les membres via une association `user`
-> inexistante (l'API `POST /api/channels` renvoie 500 bien que le canal soit créé) ;
-> et enrichir les messages avec les données d'auteur (via user-service) côté client.
+> Reste : enrichir les messages/membres avec les données d'auteur (nom, avatar via
+> user-service) côté client — aujourd'hui seul l'`authorId` est disponible.
 
 ---
 
@@ -199,7 +203,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | Phase | Objectif | Épics |
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
-| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel (messages + typing en direct, vérifié) · ✅ chaîne création/envoi de canal réparée · reste §2 Réactions/DM, §8 notifications |
+| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel (messages + typing) · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions (UI + API) · reste §2 DM/modération, §8 notifications |
 | **P2 — Comptes complets** | Parcours d'auth de bout en bout | §4 Auth (reset/verify), §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |

@@ -72,15 +72,14 @@ export class ChannelService {
       return cachedChannel as Channel;
     }
 
-    // Retrieve from database
+    // Retrieve from database. Pas d'include `user`/`creator` : l'identité vit
+    // dans un autre service (pas de modèle User ici).
     const channel = await Channel.findByPk(channelId, {
       include: [
         {
           model: ChannelMember,
           as: 'members',
-          include: ['user'],
         },
-        'creator',
       ],
     });
 

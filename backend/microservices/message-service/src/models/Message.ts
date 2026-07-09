@@ -301,6 +301,13 @@ export class Message extends Model<MessageAttributes> implements MessageAttribut
       metadata: this.metadata,
       createdAt: this.createdAt,
       editedAt: this.editedAt,
+      reactions: (this.reactions || []).map((r) => ({
+        id: r.id,
+        messageId: r.messageId,
+        userId: r.userId,
+        type: r.type,
+        createdAt: r.createdAt,
+      })),
     };
   }
 }

@@ -245,7 +245,7 @@ export class MessageService {
         where: {
           messageId,
           userId,
-          reactionType,
+          type: reactionType,
         },
         transaction,
       });
@@ -258,7 +258,7 @@ export class MessageService {
       const reaction = await Reaction.create({
         messageId,
         userId,
-        reactionType,
+        type: reactionType,
       }, { transaction });
 
       // Invalidate message cache
@@ -266,10 +266,8 @@ export class MessageService {
 
       await transaction.commit();
 
-      // Return the reaction with associations
-      return await Reaction.findByPk(reaction.id, {
-        include: ['user'],
-      });
+      // Pas d'include `user` (identité dans un autre service).
+      return reaction;
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -294,7 +292,7 @@ export class MessageService {
         where: {
           messageId,
           userId,
-          reactionType,
+          type: reactionType,
         },
         transaction,
       });

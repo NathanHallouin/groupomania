@@ -4,6 +4,7 @@ import { Hash, Settings, Users, Send, Smile, Paperclip } from 'lucide-react';
 import { Button, Avatar } from '../components/ui';
 import { useAuthStore } from '../stores/authStore';
 import { useChannelSocket } from '../hooks/useChannelSocket';
+import { ReactionBar } from '../components/ReactionBar';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Message, Channel } from '../types';
@@ -91,6 +92,8 @@ export function ChannelPage() {
               key={message.id}
               message={message}
               isOwn={message.authorId === user?.id}
+              currentUserId={user?.id}
+              onReactionChange={handleRealtimeChange}
             />
           ))
         )}
@@ -151,9 +154,16 @@ export function ChannelPage() {
 interface MessageItemProps {
   message: Message;
   isOwn: boolean;
+  currentUserId?: number;
+  onReactionChange: () => void;
 }
 
-function MessageItem({ message, isOwn }: MessageItemProps) {
+function MessageItem({
+  message,
+  isOwn,
+  currentUserId,
+  onReactionChange,
+}: MessageItemProps) {
   const author = message.author;
 
   return (
@@ -181,6 +191,14 @@ function MessageItem({ message, isOwn }: MessageItemProps) {
         {message.editedAt && (
           <p className="text-xs text-gray-400 mt-1">(modifié)</p>
         )}
+        <div className={isOwn ? 'flex justify-end' : ''}>
+          <ReactionBar
+            messageId={message.id}
+            reactions={message.reactions ?? []}
+            currentUserId={currentUserId}
+            onChanged={onReactionChange}
+          />
+        </div>
       </div>
     </div>
   );
