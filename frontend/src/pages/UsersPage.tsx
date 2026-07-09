@@ -15,24 +15,27 @@ export function UsersPage() {
 
   const searchQuery = searchParams.get('search') || '';
   const selectedDepartment = searchParams.get('department') || '';
+  const selectedRole = searchParams.get('role') || '';
+  const selectedSort = `${searchParams.get('sort') || 'createdAt'}:${searchParams.get('order') || 'DESC'}`;
 
-  const handleSearchChange = (value: string) => {
+  const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
     if (value) {
-      params.set('search', value);
+      params.set(key, value);
     } else {
-      params.delete('search');
+      params.delete(key);
     }
     setSearchParams(params);
   };
 
-  const handleDepartmentChange = (value: string) => {
+  const handleSearchChange = (value: string) => updateParam('search', value);
+  const handleDepartmentChange = (value: string) => updateParam('department', value);
+  const handleRoleChange = (value: string) => updateParam('role', value);
+  const handleSortChange = (value: string) => {
+    const [sort, order] = value.split(':');
     const params = new URLSearchParams(searchParams);
-    if (value) {
-      params.set('department', value);
-    } else {
-      params.delete('department');
-    }
+    params.set('sort', sort);
+    params.set('order', order);
     setSearchParams(params);
   };
 
@@ -73,6 +76,43 @@ export function UsersPage() {
           </select>
           <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
+
+        <div className="relative">
+          <select
+            value={selectedRole}
+            onChange={(e) => handleRoleChange(e.target.value)}
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+          >
+            <option value="">Tous les rôles</option>
+            <option value="admin">Admins</option>
+            <option value="employee">Employés</option>
+          </select>
+          <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        </div>
+
+        <div className="relative">
+          <select
+            value={selectedSort}
+            onChange={(e) => handleSortChange(e.target.value)}
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+          >
+            <option value="createdAt:DESC">Plus récents</option>
+            <option value="firstName:ASC">Nom (A→Z)</option>
+            <option value="firstName:DESC">Nom (Z→A)</option>
+            <option value="department:ASC">Département</option>
+          </select>
+          <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        </div>
+
+        {(searchQuery || selectedDepartment || selectedRole) && (
+          <button
+            type="button"
+            onClick={() => setSearchParams(new URLSearchParams())}
+            className="whitespace-nowrap rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Réinitialiser
+          </button>
+        )}
       </div>
 
       {/* Users grid */}

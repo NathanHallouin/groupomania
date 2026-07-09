@@ -153,9 +153,12 @@ export const router = createBrowserRouter([
           const url = new URL(request.url);
           const search = url.searchParams.get('search') || undefined;
           const department = url.searchParams.get('department') || undefined;
+          const role = url.searchParams.get('role') || undefined;
+          const sort = url.searchParams.get('sort') || undefined;
+          const order = (url.searchParams.get('order') as 'ASC' | 'DESC' | null) || undefined;
 
           const [usersRes, departmentsRes] = await Promise.all([
-            usersApi.getAll({ search, department, limit: 20 }),
+            usersApi.getAll({ search, department, role, sort, order, limit: 20 }),
             usersApi.getDepartments(),
           ]);
 

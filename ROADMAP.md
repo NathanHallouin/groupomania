@@ -146,8 +146,11 @@ avatar multi-tailles, `search`, `departments`, `stats`. Frontend : `UsersPage`,
 `UserProfilePage`, `ProfilePage`, `SettingsPage`.
 
 **Approfondir.**
-- 🟡⭐⭐ **Annuaire filtrable** (par département/rôle/statut) + tri, à partir de
-  `search`/`departments`/`stats` déjà exposés.
+- ✅ **FAIT** — **Annuaire filtrable & trié** : `UsersPage` avec recherche, filtre
+  par département (depuis `/api/users/departments`), par rôle (admin/employé), tri
+  (récents, nom A→Z/Z→A, département) et bouton « Réinitialiser ». Filtres portés
+  par l'URL et appliqués côté API (`/api/users?search=&department=&role=&sort=&order=`).
+  Reste (optionnel) : filtre par `statut`.
 - 🟡⭐⭐ **Organigramme** : exploiter le lien `manager` (Manager/DirectReports déjà associés).
 - 🟢⭐⭐ Compléter l'édition de profil (tous les champs du modèle : bio, tel, localisation…).
 - 🟢⭐⭐ **Complétude du profil** (`isProfileComplete`/`checkProfileCompleteness` déjà codés) : jauge de progression.
