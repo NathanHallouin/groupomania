@@ -41,3 +41,6 @@ out/
 
 # Misc
 .eslintcache
+
+# Claude Code — overrides personnels (le settings.json partagé est versionné)
+.claude/settings.local.json
