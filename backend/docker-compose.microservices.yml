@@ -1,0 +1,172 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: groupomania-postgres
+    environment:
+      POSTGRES_DB: groupomania
+      POSTGRES_USER: groupomania_user
+      POSTGRES_PASSWORD: groupomania_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U groupomania_user -d groupomania"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - groupomania-network
+
+  # Cache Redis
+  redis:
+    image: redis:7-alpine
+    container_name: groupomania-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - groupomania-network
+
+  # Service d'authentification
+  auth-service:
+    build:
+      context: ./microservices/auth-service
+      dockerfile: Dockerfile
+    container_name: groupomania-auth-service
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: groupomania_auth
+      DB_USERNAME: groupomania_user
+      DB_PASSWORD: groupomania_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-super-secret-jwt-key-for-groupomania
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./microservices/auth-service:/app
+      - /app/node_modules
+    networks:
+      - groupomania-network
+
+  # Service utilisateur
+  user-service:
+    build:
+      context: ./microservices/user-service
+      dockerfile: Dockerfile
+    container_name: groupomania-user-service
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: groupomania_users
+      DB_USERNAME: groupomania_user
+      DB_PASSWORD: groupomania_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-super-secret-jwt-key-for-groupomania
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./microservices/user-service:/app
+      - /app/node_modules
+    networks:
+      - groupomania-network
+
+  # Service de messages
+  message-service:
+    build:
+      context: ./microservices/message-service
+      dockerfile: Dockerfile
+    container_name: groupomania-message-service
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: groupomania_messages
+      DB_USERNAME: groupomania_user
+      DB_PASSWORD: groupomania_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-super-secret-jwt-key-for-groupomania
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./microservices/message-service:/app
+      - /app/node_modules
+    networks:
+      - groupomania-network
+
+  # Service de fichiers
+  file-service:
+    build:
+      context: ./microservices/file-service
+      dockerfile: Dockerfile
+    container_name: groupomania-file-service
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: groupomania_files
+      DB_USERNAME: groupomania_user
+      DB_PASSWORD: groupomania_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-super-secret-jwt-key-for-groupomania
+      UPLOAD_PATH: /app/uploads
+      MAX_FILE_SIZE: 52428800
+    ports:
+      - "3004:3004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./microservices/file-service:/app
+      - /app/node_modules
+      - file_uploads:/app/uploads
+    networks:
+      - groupomania-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  file_uploads:
+
+networks:
+  groupomania-network:
+    driver: bridge

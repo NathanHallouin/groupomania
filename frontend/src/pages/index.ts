@@ -1,0 +1,10 @@
+export { LoginPage } from './LoginPage';
+export { RegisterPage } from './RegisterPage';
+export { HomePage } from './HomePage';
+export { ChannelsPage } from './ChannelsPage';
+export { ChannelPage } from './ChannelPage';
+export { CreateChannelPage } from './CreateChannelPage';
+export { UsersPage } from './UsersPage';
+export { ProfilePage } from './ProfilePage';
+export { UserProfilePage } from './UserProfilePage';
+export { SettingsPage } from './SettingsPage';

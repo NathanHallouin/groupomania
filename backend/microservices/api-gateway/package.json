@@ -1,0 +1,41 @@
+{
+    "name": "@groupomania/api-gateway",
+    "version": "1.0.0",
+    "description": "API Gateway pour l'architecture microservices Groupomania",
+    "main": "dist/server.js",
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "scripts": {
+        "start": "node dist/server.js",
+        "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+        "build": "tsc",
+        "test": "jest",
+        "lint": "eslint src/**/*.ts"
+    },
+    "dependencies": {
+        "express": "^5.1.0",
+        "http-proxy-middleware": "^3.0.5",
+        "express-rate-limit": "^8.0.1",
+        "helmet": "^8.1.0",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.1",
+        "winston": "^3.17.0",
+        "jsonwebtoken": "^9.0.2",
+        "redis": "^5.6.1",
+        "express-validator": "^7.2.1",
+        "uuid": "^11.1.0",
+        "node-fetch": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.3",
+        "@types/node": "^24.1.0",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/uuid": "^10.0.0",
+        "@types/node-fetch": "^2.6.12",
+        "typescript": "^5.8.3",
+        "ts-node-dev": "^2.0.0",
+        "jest": "^30.0.5",
+        "eslint": "^9.32.0"
+    }
+}

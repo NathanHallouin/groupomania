@@ -1,0 +1,99 @@
+{
+  "name": "groupomania-backend",
+  "version": "3.0.0",
+  "description": "Groupomania Enterprise Social Network Backend - Microservices Orchestrator",
+  "private": true,
+  "workspaces": [
+    "microservices/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "install:all": "npm install && npm run install:services",
+    "install:services": "concurrently \"npm --prefix microservices/auth-service install\" \"npm --prefix microservices/user-service install\" \"npm --prefix microservices/message-service install\" \"npm --prefix microservices/file-service install\" \"npm --prefix microservices/api-gateway install\"",
+    "dev": "concurrently \"npm --prefix microservices/auth-service run dev\" \"npm --prefix microservices/user-service run dev\" \"npm --prefix microservices/message-service run dev\" \"npm --prefix microservices/file-service run dev\" \"npm --prefix microservices/api-gateway run dev\"",
+    "dev:gateway": "npm --prefix microservices/api-gateway run dev",
+    "dev:auth": "npm --prefix microservices/auth-service run dev",
+    "dev:user": "npm --prefix microservices/user-service run dev",
+    "dev:message": "npm --prefix microservices/message-service run dev",
+    "dev:file": "npm --prefix microservices/file-service run dev",
+    "build": "concurrently \"npm --prefix microservices/auth-service run build\" \"npm --prefix microservices/user-service run build\" \"npm --prefix microservices/message-service run build\" \"npm --prefix microservices/file-service run build\" \"npm --prefix microservices/api-gateway run build\"",
+    "test": "concurrently \"npm --prefix microservices/auth-service run test\" \"npm --prefix microservices/user-service run test\" \"npm --prefix microservices/message-service run test\" \"npm --prefix microservices/file-service run test\"",
+    "test:coverage": "concurrently \"npm --prefix microservices/auth-service run test:coverage\" \"npm --prefix microservices/user-service run test:coverage\" \"npm --prefix microservices/message-service run test:coverage\" \"npm --prefix microservices/file-service run test:coverage\"",
+    "lint": "concurrently \"npm --prefix microservices/auth-service run lint\" \"npm --prefix microservices/user-service run lint\" \"npm --prefix microservices/message-service run lint\" \"npm --prefix microservices/file-service run lint\" \"npm --prefix microservices/api-gateway run lint\"",
+    "lint:fix": "concurrently \"npm --prefix microservices/auth-service run lint:fix\" \"npm --prefix microservices/user-service run lint:fix\" \"npm --prefix microservices/message-service run lint:fix\" \"npm --prefix microservices/file-service run lint:fix\" \"npm --prefix microservices/api-gateway run lint:fix\"",
+    "format": "prettier --write \"microservices/**/*.{js,ts}\" \"shared/**/*.{js,ts}\" \"scripts/**/*.{js,ts}\" \"*.{js,ts}\"",
+    "format:check": "prettier --check \"microservices/**/*.{js,ts}\" \"shared/**/*.{js,ts}\" \"scripts/**/*.{js,ts}\" \"*.{js,ts}\"",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:microservices": "docker-compose -f docker-compose.microservices.yml up -d",
+    "docker:microservices:down": "docker-compose -f docker-compose.microservices.yml down",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:fix": "npm audit fix",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "microservices",
+    "orchestrator",
+    "workspace",
+    "groupomania",
+    "nodejs",
+    "enterprise",
+    "docker"
+  ],
+  "author": "Groupomania Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^9.2.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "joi": "^17.13.3",
+    "pg": "^8.16.3",
+    "sequelize": "^6.37.7",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/crypto-js": "^4.2.2",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.1.0",
+    "@types/pg": "^8.15.4",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  },
+  "lint-staged": {
+    "microservices/**/*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "shared/**/*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "scripts/**/*.{js,ts}": [
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WilhelmRosental/groupomania-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/WilhelmRosental/groupomania-backend/issues"
+  },
+  "homepage": "https://github.com/WilhelmRosental/groupomania-backend#readme"
+}

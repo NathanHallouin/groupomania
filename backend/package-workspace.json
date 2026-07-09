@@ -1,0 +1,52 @@
+{
+    "name": "groupomania-microservices",
+    "version": "1.0.0",
+    "description": "Workspace parent pour harmoniser les dépendances entre microservices",
+    "private": true,
+    "workspaces": [
+        "microservices/*"
+    ],
+    "engines": {
+        "node": ">=20.0.0",
+        "npm": ">=10.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.12.5",
+        "@types/express": "^6.0.0",
+        "@types/cors": "^2.8.21",
+        "@types/compression": "^1.8.2",
+        "@types/morgan": "^1.9.11",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/bcrypt": "^6.0.0",
+        "@types/multer": "^2.0.0",
+        "@types/pg": "^8.16.10",
+        "@types/uuid": "^11.0.1",
+        "@types/jest": "^30.0.0",
+        "typescript": "^5.8.3",
+        "nodemon": "^3.2.0",
+        "ts-node": "^11.0.0",
+        "jest": "^30.0.0",
+        "ts-jest": "^30.0.0",
+        "supertest": "^7.0.0",
+        "eslint": "^9.15.0",
+        "@typescript-eslint/eslint-plugin": "^8.18.0",
+        "@typescript-eslint/parser": "^8.18.0",
+        "prettier": "^3.4.2",
+        "rimraf": "^6.0.1",
+        "concurrently": "^9.1.0"
+    },
+    "scripts": {
+        "install:all": "npm install && npm run install:services",
+        "install:services": "concurrently \"npm --prefix microservices/auth-service install\" \"npm --prefix microservices/user-service install\" \"npm --prefix microservices/message-service install\" \"npm --prefix microservices/file-service install\" \"npm --prefix microservices/api-gateway install\"",
+        "dev": "concurrently \"npm --prefix microservices/auth-service run dev\" \"npm --prefix microservices/user-service run dev\" \"npm --prefix microservices/message-service run dev\" \"npm --prefix microservices/file-service run dev\" \"npm --prefix microservices/api-gateway run dev\"",
+        "build": "concurrently \"npm --prefix microservices/auth-service run build\" \"npm --prefix microservices/user-service run build\" \"npm --prefix microservices/message-service run build\" \"npm --prefix microservices/file-service run build\" \"npm --prefix microservices/api-gateway run build\"",
+        "test": "concurrently \"npm --prefix microservices/auth-service run test\" \"npm --prefix microservices/user-service run test\" \"npm --prefix microservices/message-service run test\" \"npm --prefix microservices/file-service run test\"",
+        "test:coverage": "concurrently \"npm --prefix microservices/auth-service run test:coverage\" \"npm --prefix microservices/user-service run test:coverage\" \"npm --prefix microservices/message-service run test:coverage\" \"npm --prefix microservices/file-service run test:coverage\"",
+        "lint": "concurrently \"npm --prefix microservices/auth-service run lint\" \"npm --prefix microservices/user-service run lint\" \"npm --prefix microservices/message-service run lint\" \"npm --prefix microservices/file-service run lint\"",
+        "lint:fix": "concurrently \"npm --prefix microservices/auth-service run lint:fix\" \"npm --prefix microservices/user-service run lint:fix\" \"npm --prefix microservices/message-service run lint:fix\" \"npm --prefix microservices/file-service run lint:fix\"",
+        "docker:build": "docker-compose build",
+        "docker:up": "docker-compose up -d",
+        "docker:down": "docker-compose down",
+        "docker:logs": "docker-compose logs -f"
+    }
+}
