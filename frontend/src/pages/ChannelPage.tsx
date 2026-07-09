@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLoaderData, useFetcher, useRevalidator } from 'react-router-dom';
-import { Hash, Settings, Users, Send, Smile, Paperclip } from 'lucide-react';
+import { Hash, Settings, Users, Send, Smile, Paperclip, FileText } from 'lucide-react';
 import { Button, Avatar } from '../components/ui';
 import { useAuthStore } from '../stores/authStore';
 import { useChannelSocket } from '../hooks/useChannelSocket';
 import { useUsersMap } from '../hooks/useUsers';
 import { ReactionBar } from '../components/ReactionBar';
+import { filesApi, fileUrl, messagesApi } from '../api';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { Message, Channel, User } from '../types';
+import type { Message, Channel, User, MessageAttachment } from '../types';
 
 interface LoaderData {
   channel: Channel;
@@ -33,6 +34,44 @@ export function ChannelPage() {
   );
   // Annuaire (id → profil) pour afficher l'auteur des messages.
   const usersMap = useUsersMap();
+
+  // Pièce jointe : upload puis envoi d'un message portant l'attachement.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await filesApi.upload(file);
+      const f = res.data?.[0];
+      if (f) {
+        await messagesApi.create({
+          channelId: channel.id,
+          content: file.name,
+          type: f.type === 'image' ? 'image' : 'file',
+          metadata: {
+            attachments: [
+              {
+                id: Date.now(),
+                filename: f.originalName,
+                url: f.path,
+                mimeType: f.mimetype,
+                size: f.size,
+              },
+            ],
+          },
+        });
+        revalidator.revalidate();
+      }
+    } catch (err) {
+      console.error("Échec de l'envoi de la pièce jointe:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -132,9 +171,18 @@ export function ChannelPage() {
               required
             />
             <div className="absolute right-2 bottom-2 flex items-center gap-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleAttach}
+              />
               <button
                 type="button"
-                className="p-2 text-gray-400 hover:text-gray-600 rounded"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                title="Joindre un fichier"
+                className="p-2 text-gray-400 hover:text-gray-600 rounded disabled:opacity-50"
               >
                 <Paperclip className="h-5 w-5" />
               </button>
@@ -196,6 +244,10 @@ function MessageItem({
         >
           <p className="whitespace-pre-wrap">{message.content}</p>
         </div>
+
+        {message.metadata?.attachments?.map((att) => (
+          <AttachmentView key={att.id} attachment={att} isOwn={isOwn} />
+        ))}
         {message.editedAt && (
           <p className="text-xs text-gray-400 mt-1">(modifié)</p>
         )}
@@ -209,5 +261,45 @@ function MessageItem({
         </div>
       </div>
     </div>
+  );
+}
+
+interface AttachmentViewProps {
+  attachment: MessageAttachment;
+  isOwn: boolean;
+}
+
+function AttachmentView({ attachment, isOwn }: AttachmentViewProps) {
+  const src = fileUrl(attachment.url);
+  const isImage = attachment.mimeType?.startsWith('image/');
+
+  if (isImage) {
+    return (
+      <a
+        href={src}
+        target="_blank"
+        rel="noreferrer"
+        className={`mt-1 block ${isOwn ? 'ml-auto' : ''}`}
+      >
+        <img
+          src={src}
+          alt={attachment.filename}
+          className="max-h-60 rounded-lg border border-gray-200"
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={src}
+      target="_blank"
+      rel="noreferrer"
+      download
+      className="mt-1 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+    >
+      <FileText className="h-4 w-4 flex-shrink-0" />
+      <span className="max-w-[12rem] truncate">{attachment.filename}</span>
+    </a>
   );
 }

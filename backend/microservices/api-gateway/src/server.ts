@@ -140,6 +140,15 @@ const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3002'
 const MESSAGE_SERVICE_URL = process.env.MESSAGE_SERVICE_URL || 'http://localhost:3003';
 const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || 'http://localhost:3004';
 
+// Fichiers uploadés servis en statique — PUBLIC (pas d'auth) pour que les balises
+// <img>/<a> fonctionnent. Proxy vers le file-service qui sert `/uploads/*`.
+app.use('/uploads',
+  createProxyMiddleware({
+    target: `${FILE_SERVICE_URL}/uploads`,
+    changeOrigin: true,
+  })
+);
+
 // Express retire le préfixe de montage (ex. `/api/auth`) avant le proxy. Comme
 // chaque microservice sert ses routes sous `/api/<x>`, on inclut ce préfixe dans
 // la cible : http-proxy-middleware ré-ajoute le chemin restant (prependPath).

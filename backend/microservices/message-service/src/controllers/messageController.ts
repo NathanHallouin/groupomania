@@ -28,7 +28,7 @@ export class MessageController {
       });
     }
 
-    const { content, channelId, parentId, attachments } = req.body;
+    const { content, channelId, parentId, type, metadata } = req.body;
     const userId = req.user!.userId;
 
     try {
@@ -37,7 +37,10 @@ export class MessageController {
         channelId,
         authorId: userId,
         parentId,
-        attachments,
+        // `type` (text/image/file/link) et `metadata` (pièces jointes) sont des
+        // colonnes du modèle Message.
+        ...(type ? { type } : {}),
+        ...(metadata ? { metadata } : {}),
       });
 
       res.status(201).json({

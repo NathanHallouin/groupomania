@@ -344,6 +344,14 @@ export interface CreateMessageRequest {
   channelId: number;
   /** Parent message ID for replies */
   parentId?: number;
+  /** Message type (attachments use `image`/`file`) */
+  type?: 'text' | 'image' | 'file' | 'link' | 'system';
+  /** Additional metadata (attachments, mentions, links) */
+  metadata?: {
+    attachments?: MessageAttachment[];
+    mentions?: number[];
+    links?: string[];
+  };
 }
 
 /**

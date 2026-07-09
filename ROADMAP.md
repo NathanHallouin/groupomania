@@ -103,8 +103,13 @@ création + édition/suppression, réactions **côté API seulement**.
 messages de type `image/file/link` ne sont pas alimentés.
 
 **Approfondir.**
-- 🔴⭐⭐⭐ Joindre des fichiers/images à un message (drag & drop + progression),
-  reliés aux types `image`/`file` déjà prévus.
+- ✅ **FAIT** — **Joindre des fichiers/images à un message** : bouton trombone de la
+  `ChannelPage` → upload via `file-service` (`POST /api/files/upload`) → message
+  `type=image|file` portant `metadata.attachments`. Rendu en aperçu image ou lien
+  de fichier. Fichiers servis **publiquement via le gateway** (`/uploads`, sans auth,
+  pour les `<img>`). Corrigé au passage : le contrôleur transmet désormais
+  `type`/`metadata` (au lieu d'un champ `attachments` inexistant). Vérifié E2E.
+  Reste : drag & drop + barre de progression, plusieurs fichiers.
 - 🟡⭐⭐ Aperçus (miniatures via `imageProcessingService`) et galerie par canal.
 - 🟡⭐⭐ **Partage de fichiers** : exposer `FileShare` (permissions, expiration).
 - 🟢⭐⭐ Respect des `SecurityLevel` / `canAccess(userId, role)` (déjà codé côté modèle).
@@ -241,9 +246,9 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
 | **P1 — Rendre la messagerie vivante** ✅ | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages · ✅ §8 Notifications in-app · ✅ ajout de membre réparé · reste (optionnel) §2 DM/modération avancée |
-| **P2 — Comptes complets** 🚧 | Parcours d'auth de bout en bout | ✅ §4 mot de passe oublié/reset · ✅ §4 vérification email · reste §5 Profils |
-| **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
-| **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |
+| **P2 — Comptes complets** ✅ | Parcours d'auth de bout en bout | ✅ §4 reset/vérif email · ✅ §5 annuaire filtrable, édition profil + jauge · reste (optionnel) §5 organigramme/confidentialité |
+| **P3 — Contenus riches** ✅ | Fichiers & recherche | ✅ §3 Pièces jointes (image/fichier) · ✅ §7 Recherche globale (users + canaux) · reste (optionnel) messages dans la recherche, drag & drop |
+| **P4 — Pilotage** 🚧 | Admin, modération, qualité | ✅ §6 Dashboard admin · ✅ §9 Smoke-test e2e · reste §9 tests unitaires (jest), §6 journal d'audit |
 
 > Chaque épic est **ancré sur des modèles/endpoints déjà présents** : il s'agit
 > majoritairement de **câbler et finir**, pas de repartir de zéro.

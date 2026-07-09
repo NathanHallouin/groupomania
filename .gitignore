@@ -3,6 +3,10 @@ node_modules/
 .pnp
 .pnp.js
 
+# Fichiers uploadés (runtime)
+uploads/
+temp/
+
 # Logs
 logs
 *.log

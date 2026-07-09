@@ -3,3 +3,4 @@ export { authApi } from './auth';
 export { channelsApi } from './channels';
 export { messagesApi } from './messages';
 export { usersApi } from './users';
+export { filesApi, fileUrl } from './files';
