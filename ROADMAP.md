@@ -232,9 +232,12 @@ de notifications, alors que l'event socket `notification` est déjà émis.
   recherche + stats (régression query-params), messagerie + réactions, admin
   (rôle/statut), reset mot de passe. Mutations **auto-restaurées**, sortie non nulle
   en cas d'échec. **20/20 vérifs OK.**
-- 🔴⭐⭐ Reste : tests **unitaires**/intégration avec jest (installer `ts-jest`,
-  config par service en `isolatedModules`, mock DB) — le jest actuel est non
-  fonctionnel (ts-jest absent, test d'exemple cassé).
+- ✅ **AMORCÉ (unitaire)** — jest rendu **fonctionnel** dans l'api-gateway :
+  `ts-jest` installé + `jest.config.js` en `isolatedModules` (transpile-only, sans
+  typecheck), et un premier test de régression sur `ValidationMiddleware`
+  (`sanitizeObject`/`sanitize`) couvrant le bug Express 5 (query à prototype null)
+  et le nettoyage XSS. **4 tests au vert** (`npm --prefix microservices/api-gateway test`).
+  Reste : étendre aux autres services et aux contrôleurs (mock DB).
 - 🟡⭐⭐ CI (lint + build + tests) sur PR.
 - 🟢⭐⭐ Endpoints `/health` par service + métriques de base.
 - 🟢⭐ Durcissement CORS/Helmet/rate-limit (paquets déjà installés).
