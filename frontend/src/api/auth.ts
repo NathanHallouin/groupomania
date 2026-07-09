@@ -85,4 +85,32 @@ export const authApi = {
     const response = await apiClient.get('/auth/verify-token');
     return response.data;
   },
+
+  /**
+   * Requests a password reset link for the given email.
+   * Always resolves (anti-enumeration). In dev, may return a `resetUrl`.
+   * @param email - Account email
+   */
+  forgotPassword: async (
+    email: string
+  ): Promise<ApiResponse<{ resetUrl?: string }>> => {
+    const response = await apiClient.post<ApiResponse<{ resetUrl?: string }>>(
+      '/auth/forgot-password',
+      { email }
+    );
+    return response.data;
+  },
+
+  /**
+   * Resets the password using a valid reset token.
+   * @param token - Reset token from the email link
+   * @param password - New password (must meet complexity requirements)
+   */
+  resetPassword: async (token: string, password: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.post<ApiResponse<void>>('/auth/reset-password', {
+      token,
+      password,
+    });
+    return response.data;
+  },
 };

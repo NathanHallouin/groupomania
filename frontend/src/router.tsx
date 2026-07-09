@@ -41,6 +41,15 @@ export const router = createBrowserRouter([
     loader: requireGuest,
     lazy: () => import('./pages/RegisterPage').then(m => ({ Component: m.RegisterPage })),
   },
+  {
+    path: '/forgot-password',
+    loader: requireGuest,
+    lazy: () => import('./pages/ForgotPasswordPage').then(m => ({ Component: m.ForgotPasswordPage })),
+  },
+  {
+    path: '/reset-password',
+    lazy: () => import('./pages/ResetPasswordPage').then(m => ({ Component: m.ResetPasswordPage })),
+  },
 
   // Protected routes with layout
   {

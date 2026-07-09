@@ -121,8 +121,12 @@ messages de type `image/file/link` ne sont pas alimentés.
 ni écran** pour la vérification d'email et la réinitialisation de mot de passe.
 
 **Approfondir.**
-- 🟡⭐⭐⭐ **Mot de passe oublié / reset** : endpoints `forgot`/`reset` + emails
-  (`nodemailer`) + écrans — les champs `passwordReset*` existent déjà.
+- ✅ **FAIT** — **Mot de passe oublié / reset** : endpoints `POST /api/auth/forgot-password`
+  (token haché SHA-256 + expiration 1 h, réponse anti-énumération) et
+  `POST /api/auth/reset-password` (token à usage unique) ; écrans `ForgotPasswordPage`
+  et `ResetPasswordPage` + lien depuis le login. Faute de SMTP, le lien est logué et
+  renvoyé hors production. Vérifié E2E (nouveau MDP OK, ancien rejeté, token non
+  réutilisable). Reste : brancher l'envoi d'email `nodemailer`.
 - 🟡⭐⭐ **Vérification d'email** : envoi + endpoint de confirmation
   (`emailVerificationToken` déjà présent).
 - 🟢⭐⭐ Feedback UI du **verrouillage de compte** (5 tentatives / 2 h déjà codé).
@@ -215,7 +219,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
 | **P1 — Rendre la messagerie vivante** ✅ | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages · ✅ §8 Notifications in-app · ✅ ajout de membre réparé · reste (optionnel) §2 DM/modération avancée |
-| **P2 — Comptes complets** | Parcours d'auth de bout en bout | §4 Auth (reset/verify), §5 Profils |
+| **P2 — Comptes complets** 🚧 | Parcours d'auth de bout en bout | ✅ §4 mot de passe oublié/reset · reste §4 vérification email, §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |
 

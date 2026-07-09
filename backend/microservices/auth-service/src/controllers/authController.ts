@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { User } from '../models';
 import { TokenService } from '../services/tokenService';
 import { AppError } from '../middleware/errorHandler';
@@ -334,6 +335,83 @@ export class AuthController {
           success: false,
           message: 'Internal server error',
         });
+      }
+    }
+  };
+
+  /**
+   * Demande de réinitialisation de mot de passe : génère un token, le stocke
+   * (haché), et — faute de SMTP configuré — logue le lien de réinitialisation.
+   */
+  public forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ where: { email } });
+
+      // Réponse identique qu'un compte existe ou non (anti-énumération).
+      const genericMessage =
+        'Si un compte existe pour cet email, un lien de réinitialisation a été envoyé.';
+
+      if (!user) {
+        res.status(200).json({ success: true, message: genericMessage });
+        return;
+      }
+
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+      await user.update({
+        passwordResetToken: tokenHash,
+        passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 heure
+      } as any);
+
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+      console.log(`🔑 Lien de réinitialisation pour ${email} : ${resetUrl}`);
+      // TODO: envoyer l'email via nodemailer une fois le SMTP configuré.
+
+      // Hors production (pas de SMTP), on renvoie le lien pour faciliter les tests.
+      const data = process.env.NODE_ENV === 'production' ? undefined : { resetUrl };
+      res.status(200).json({ success: true, message: genericMessage, data });
+    } catch (error) {
+      console.error('Error during forgot-password:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
+
+  /**
+   * Réinitialise le mot de passe à partir d'un token valide et non expiré.
+   */
+  public resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token, password } = req.body;
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+      const user = await User.findOne({ where: { passwordResetToken: tokenHash } });
+      if (
+        !user ||
+        !user.passwordResetExpires ||
+        user.passwordResetExpires.getTime() < Date.now()
+      ) {
+        throw new AppError('Lien de réinitialisation invalide ou expiré', 400);
+      }
+
+      await user.update({
+        password: await bcrypt.hash(password, 12),
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      } as any);
+
+      res.status(200).json({
+        success: true,
+        message: 'Mot de passe réinitialisé avec succès',
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ success: false, message: error.message });
+      } else {
+        console.error('Error during reset-password:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
       }
     }
   };

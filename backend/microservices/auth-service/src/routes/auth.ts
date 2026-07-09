@@ -152,4 +152,43 @@ router.get(
   }
 );
 
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Demander un lien de réinitialisation de mot de passe
+ * @access  Public
+ */
+router.post(
+  '/forgot-password',
+  [
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Veuillez fournir un email valide'),
+  ],
+  validationMiddleware,
+  asyncHandler(authController.forgotPassword)
+);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Réinitialiser le mot de passe avec un token valide
+ * @access  Public
+ */
+router.post(
+  '/reset-password',
+  [
+    body('token')
+      .notEmpty()
+      .withMessage('Le token de réinitialisation est requis'),
+
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('Le mot de passe doit contenir au moins 8 caractères')
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+      .withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial'),
+  ],
+  validationMiddleware,
+  asyncHandler(authController.resetPassword)
+);
+
 export default router;
