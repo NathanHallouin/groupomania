@@ -8,6 +8,7 @@ import {
   Hash,
   Plus,
   LogOut,
+  Shield,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useChannelStore } from '../../stores/channelStore';
@@ -21,6 +22,10 @@ export function Sidebar() {
     { to: '/', icon: Home, label: 'Accueil' },
     { to: '/channels', icon: MessageSquare, label: 'Channels' },
     { to: '/users', icon: Users, label: 'Utilisateurs' },
+    // Réservé aux administrateurs.
+    ...(user?.role === 'admin'
+      ? [{ to: '/admin', icon: Shield, label: 'Administration' }]
+      : []),
     { to: '/settings', icon: Settings, label: 'Paramètres' },
   ];
 

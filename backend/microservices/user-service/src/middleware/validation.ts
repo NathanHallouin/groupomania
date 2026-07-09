@@ -90,12 +90,12 @@ export const updateProfileSchema = [
 
   body('role')
     .optional()
-    .isIn(['admin', 'manager', 'employee'])
+    .isIn(['admin', 'employee'])
     .withMessage('Invalid role'),
 
   body('status')
     .optional()
-    .isIn(['active', 'inactive', 'pending'])
+    .isIn(['active', 'inactive', 'suspended', 'pending'])
     .withMessage('Invalid status'),
 
   body('manager')

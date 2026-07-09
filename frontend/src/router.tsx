@@ -185,6 +185,24 @@ export const router = createBrowserRouter([
         lazy: () => import('./pages/UserProfilePage').then(m => ({ Component: m.UserProfilePage })),
       },
       {
+        path: 'admin',
+        loader: async () => {
+          const { user } = useAuthStore.getState();
+          if (user?.role !== 'admin') throw redirect('/');
+
+          const [usersRes, statsRes] = await Promise.all([
+            usersApi.getAll({ limit: 100 }),
+            usersApi.getStats().catch(() => null),
+          ]);
+
+          return {
+            users: usersRes.data || [],
+            stats: statsRes?.data?.stats ?? null,
+          };
+        },
+        lazy: () => import('./pages/AdminPage').then(m => ({ Component: m.AdminPage })),
+      },
+      {
         path: 'search',
         loader: async ({ request }: LoaderFunctionArgs) => {
           const url = new URL(request.url);

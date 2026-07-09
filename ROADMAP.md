@@ -168,8 +168,12 @@ avatar multi-tailles, `search`, `departments`, `stats`. Frontend : `UsersPage`,
 des règles admin/moderator. Aucune interface d'administration dédiée.
 
 **Approfondir.**
-- 🔴⭐⭐⭐ **Tableau de bord admin** : gestion des utilisateurs (activer/suspendre via
-  `status`, changer de rôle), vue d'ensemble via `stats`.
+- ✅ **FAIT** — **Tableau de bord admin** (`/admin`, réservé au rôle admin via le
+  loader + lien Sidebar conditionnel) : cartes de stats (`/api/users/stats`) et
+  gestion des utilisateurs — promouvoir/rétrograder (rôle) et suspendre/réactiver
+  (statut) via `PUT /api/users/:id`, avec garde-fous sur son propre compte.
+  Au passage : validation `status` alignée sur l'enum (`suspended` manquait) et
+  rôle nettoyé (`manager` invalide retiré). Vérifié E2E.
 - 🟡⭐⭐ Modération transverse des messages (suppression, `read_only`) en s'appuyant
   sur `canDelete`/`canEdit`.
 - 🟢⭐ Journal d'audit léger (les logs `winston` sont déjà en place).
