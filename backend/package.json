@@ -34,7 +34,8 @@
     "docker:microservices:down": "docker-compose -f docker-compose.microservices.yml down",
     "security:audit": "npm audit --audit-level=moderate",
     "security:fix": "npm audit fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:smoke": "node scripts/smoke-test.js"
   },
   "keywords": [
     "microservices",

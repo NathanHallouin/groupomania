@@ -221,8 +221,14 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 `winston` + rotation de logs présents ; `eslint`/`prettier`/`husky` configurés.
 
 **Approfondir.**
-- 🔴⭐⭐⭐ Tests : unitaires (services/contrôleurs), intégration (auth + messagerie),
-  e2e sur les parcours clés.
+- ✅ **FAIT (e2e)** — **Smoke-test** `backend/scripts/smoke-test.js` (`npm run test:smoke`)
+  qui exerce toute la stack via le gateway : auth (login/échec/profil), users +
+  recherche + stats (régression query-params), messagerie + réactions, admin
+  (rôle/statut), reset mot de passe. Mutations **auto-restaurées**, sortie non nulle
+  en cas d'échec. **20/20 vérifs OK.**
+- 🔴⭐⭐ Reste : tests **unitaires**/intégration avec jest (installer `ts-jest`,
+  config par service en `isolatedModules`, mock DB) — le jest actuel est non
+  fonctionnel (ts-jest absent, test d'exemple cassé).
 - 🟡⭐⭐ CI (lint + build + tests) sur PR.
 - 🟢⭐⭐ Endpoints `/health` par service + métriques de base.
 - 🟢⭐ Durcissement CORS/Helmet/rate-limit (paquets déjà installés).
