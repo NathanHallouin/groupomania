@@ -1,8 +1,12 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { useNotificationListener } from '../../hooks/useNotificationListener';
 
 export function Layout() {
+  // Ouvre le socket et route les notifications temps réel vers le store.
+  useNotificationListener();
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />

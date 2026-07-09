@@ -89,6 +89,8 @@ création + édition/suppression, réactions **côté API seulement**.
 >   **toute requête avec query params renvoyait 500** (pagination, recherche, et
 >   même le chargement des messages `?limit=50`). Remplacé par
 >   `Object.prototype.hasOwnProperty.call`.
+> - **ajout de membre** (`POST /api/channels/:id/members` → 200) : même rollback
+>   après commit + include `user` inexistant → corrigé (retourne le membre créé).
 
 ---
 
@@ -181,7 +183,11 @@ et un bloc `notifications`, mais il n'y a ni bascule de thème, ni i18n, ni cent
 de notifications, alors que l'event socket `notification` est déjà émis.
 
 **Approfondir.**
-- 🟡⭐⭐ **Centre de notifications** (in-app + préférences déjà modélisées).
+- ✅ **FAIT (in-app)** — **Centre de notifications** : le message-service notifie
+  les membres d'un canal (hors auteur et hors ceux qui le regardent déjà) à chaque
+  message ; côté frontend, écoute globale (`useNotificationListener` dans le Layout),
+  store dédié et cloche `NotificationBell` (badge de non-lues + liste, clic → canal).
+  Reste à brancher les préférences `notifications.*` (email/push/mentions).
 - 🟢⭐⭐ **Bascule de thème** clair/sombre reliée à `preferences.theme` (Tailwind `dark:`).
 - 🟡⭐ **i18n** (fr/en) reliée à `preferences.language`.
 - 🟢⭐ États de chargement/erreur/vide homogènes (React Query déjà en place).
@@ -208,7 +214,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | Phase | Objectif | Épics |
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
-| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages (nom/avatar) · ✅ gateway query params réparé · reste §2 DM/modération, §8 notifications |
+| **P1 — Rendre la messagerie vivante** ✅ | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages · ✅ §8 Notifications in-app · ✅ ajout de membre réparé · reste (optionnel) §2 DM/modération avancée |
 | **P2 — Comptes complets** | Parcours d'auth de bout en bout | §4 Auth (reset/verify), §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |

@@ -248,10 +248,9 @@ export class ChannelService {
 
       await transaction.commit();
 
-      // Return the member with associations
-      return await ChannelMember.findByPk(member.id, {
-        include: ['user', 'channel'],
-      });
+      // Pas de refetch avec include `user` (association cross-service inexistante) :
+      // on retourne le membre créé.
+      return member;
     } catch (error) {
       await transaction.rollback();
       throw error;

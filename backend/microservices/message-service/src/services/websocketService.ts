@@ -4,6 +4,7 @@ import { config } from '../config/config';
 import { authenticateSocket } from '../middleware/auth';
 import { MessageService } from './messageService';
 import { ChannelService } from './channelService';
+import { ChannelMember } from '../models/ChannelMember';
 import { SocketEvents, RealTimeNotification, MessageAttributes, ReactionAttributes } from '../types';
 
 /**
@@ -180,6 +181,9 @@ export class WebSocketService {
       const roomName = `channel_${message.channelId}`;
       this.io.to(roomName).emit('message_created', message.toSocketJSON());
 
+      // Notifie les membres non présents dans le canal (hors auteur)
+      await this.notifyChannelMembers(message.channelId, userId, message);
+
       console.log(`Message ${message.id} created in channel ${message.channelId}`);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -348,6 +352,47 @@ export class WebSocketService {
       userSockets.forEach(socketId => {
         this.io.to(socketId).emit('notification', notification);
       });
+    }
+  }
+
+  /**
+   * Notifie les membres d'un canal d'un nouveau message.
+   * Exclut l'auteur et les membres qui regardent déjà le canal (présents dans
+   * la room), pour éviter les doublons avec l'event `message_created`.
+   */
+  private async notifyChannelMembers(
+    channelId: number,
+    authorId: number,
+    message: any
+  ): Promise<void> {
+    try {
+      const roomName = `channel_${channelId}`;
+      const roomSockets = this.io.sockets.adapter.rooms.get(roomName) || new Set<string>();
+      const members = await ChannelMember.findAll({ where: { channelId } });
+
+      for (const member of members) {
+        if (member.userId === authorId) continue;
+
+        const userSockets = this.connectedUsers.get(member.userId);
+        const isViewing =
+          !!userSockets && [...userSockets].some((id) => roomSockets.has(id));
+        if (isViewing) continue;
+
+        this.sendNotificationToUser(member.userId, {
+          id: `msg-${message.id}-${member.userId}`,
+          type: 'message',
+          userId: member.userId,
+          channelId,
+          messageId: message.id,
+          data: {
+            authorId,
+            preview: String(message.content ?? '').slice(0, 120),
+          },
+          timestamp: new Date(),
+        });
+      }
+    } catch (err) {
+      console.error('notifyChannelMembers error:', err);
     }
   }
 
