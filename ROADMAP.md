@@ -152,8 +152,11 @@ avatar multi-tailles, `search`, `departments`, `stats`. Frontend : `UsersPage`,
   par l'URL et appliqués côté API (`/api/users?search=&department=&role=&sort=&order=`).
   Reste (optionnel) : filtre par `statut`.
 - 🟡⭐⭐ **Organigramme** : exploiter le lien `manager` (Manager/DirectReports déjà associés).
-- 🟢⭐⭐ Compléter l'édition de profil (tous les champs du modèle : bio, tel, localisation…).
-- 🟢⭐⭐ **Complétude du profil** (`isProfileComplete`/`checkProfileCompleteness` déjà codés) : jauge de progression.
+- ✅ **FAIT** — Édition de profil (bio, téléphone, localisation) fonctionnelle et
+  vérifiée E2E via `PUT /api/users/:id` (la validation `isMobilePhone` du téléphone
+  est conservée). `position`/`department` restent réservés aux admins côté API.
+- ✅ **FAIT** — **Jauge de complétude** du profil : barre de progression sur la
+  `ProfilePage` (proportion des champs clés renseignés) avec raccourci « Compléter ».
 - 🟢⭐ Confidentialité : appliquer réellement `preferences.privacy` (showEmail/showDepartment/showLastLogin).
 
 ---

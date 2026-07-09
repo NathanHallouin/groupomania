@@ -28,6 +28,23 @@ export function ProfilePage() {
 
   const isSubmitting = navigation.state === 'submitting';
 
+  // Complétude du profil : proportion des champs clés renseignés.
+  const PROFILE_FIELDS: (keyof User)[] = [
+    'firstName',
+    'lastName',
+    'email',
+    'department',
+    'position',
+    'bio',
+    'phone',
+    'location',
+  ];
+  const filledCount = PROFILE_FIELDS.filter((f) => {
+    const v = user[f];
+    return typeof v === 'string' ? v.trim().length > 0 : Boolean(v);
+  }).length;
+  const completeness = Math.round((filledCount / PROFILE_FIELDS.length) * 100);
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -119,6 +136,33 @@ export function ProfilePage() {
           </Button>
         </div>
       </Card>
+
+      {/* Complétude du profil */}
+      {completeness < 100 && (
+        <Card padding="lg">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Profil complété à {completeness}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="text-sm text-primary-600 hover:text-primary-700"
+            >
+              Compléter
+            </button>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-primary-600 transition-all"
+              style={{ width: `${completeness}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            Ajoutez une bio, un téléphone et une localisation pour un profil complet.
+          </p>
+        </Card>
+      )}
 
       {/* Profile form */}
       {isEditing && (
