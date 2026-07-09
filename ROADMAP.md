@@ -183,7 +183,10 @@ des règles admin/moderator. Aucune interface d'administration dédiée.
 dans le `Header` (non branchée globalement).
 
 **Approfondir.**
-- 🟡⭐⭐ Recherche **globale** depuis le Header (utilisateurs + canaux + messages).
+- ✅ **FAIT (utilisateurs + canaux)** — Recherche **globale** depuis le Header :
+  nouvelle `SearchPage` (route `/search?q=`) qui interroge `users/search` et
+  `channels/search` et affiche les résultats groupés (le lien du Header était mort).
+  Reste : inclure les messages (`messages/search`).
 - 🟢⭐⭐ Filtres & facettes (département, type de canal, auteur, date `date-fns`).
 - 🟡⭐ Recherche plein-texte Postgres (index GIN) sur messages.
 

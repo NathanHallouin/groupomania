@@ -185,6 +185,32 @@ export const router = createBrowserRouter([
         lazy: () => import('./pages/UserProfilePage').then(m => ({ Component: m.UserProfilePage })),
       },
       {
+        path: 'search',
+        loader: async ({ request }: LoaderFunctionArgs) => {
+          const url = new URL(request.url);
+          const q = (url.searchParams.get('q') || '').trim();
+          if (!q) return { q, users: [], channels: [] };
+
+          const [usersRes, channelsRes] = await Promise.all([
+            usersApi.search(q, 20).catch(() => null),
+            channelsApi.search(q, { limit: 20 }).catch(() => null),
+          ]);
+
+          return {
+            q,
+            users:
+              (usersRes?.data as { users?: unknown[] } | undefined)?.users ??
+              (Array.isArray(usersRes?.data) ? usersRes?.data : []) ??
+              [],
+            channels:
+              (channelsRes?.data as { channels?: unknown[] } | undefined)?.channels ??
+              (Array.isArray(channelsRes?.data) ? channelsRes?.data : []) ??
+              [],
+          };
+        },
+        lazy: () => import('./pages/SearchPage').then(m => ({ Component: m.SearchPage })),
+      },
+      {
         path: 'profile',
         loader: async () => {
           const response = await authApi.getProfile();
