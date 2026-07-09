@@ -4,10 +4,11 @@ import { Hash, Settings, Users, Send, Smile, Paperclip } from 'lucide-react';
 import { Button, Avatar } from '../components/ui';
 import { useAuthStore } from '../stores/authStore';
 import { useChannelSocket } from '../hooks/useChannelSocket';
+import { useUsersMap } from '../hooks/useUsers';
 import { ReactionBar } from '../components/ReactionBar';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { Message, Channel } from '../types';
+import type { Message, Channel, User } from '../types';
 
 interface LoaderData {
   channel: Channel;
@@ -30,6 +31,8 @@ export function ChannelPage() {
     channel.id,
     handleRealtimeChange
   );
+  // Annuaire (id → profil) pour afficher l'auteur des messages.
+  const usersMap = useUsersMap();
 
   useEffect(() => {
     scrollToBottom();
@@ -91,6 +94,7 @@ export function ChannelPage() {
             <MessageItem
               key={message.id}
               message={message}
+              author={message.author ?? usersMap.get(message.authorId)}
               isOwn={message.authorId === user?.id}
               currentUserId={user?.id}
               onReactionChange={handleRealtimeChange}
@@ -153,6 +157,7 @@ export function ChannelPage() {
 
 interface MessageItemProps {
   message: Message;
+  author?: User;
   isOwn: boolean;
   currentUserId?: number;
   onReactionChange: () => void;
@@ -160,11 +165,14 @@ interface MessageItemProps {
 
 function MessageItem({
   message,
+  author,
   isOwn,
   currentUserId,
   onReactionChange,
 }: MessageItemProps) {
-  const author = message.author;
+  const displayName = author
+    ? `${author.firstName} ${author.lastName}`
+    : `Utilisateur #${message.authorId}`;
 
   return (
     <div className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : ''}`}>
@@ -172,7 +180,7 @@ function MessageItem({
       <div className={`flex-1 max-w-[70%] ${isOwn ? 'text-right' : ''}`}>
         <div className={`flex items-baseline gap-2 ${isOwn ? 'justify-end' : ''}`}>
           <span className="font-medium text-gray-900">
-            {author?.firstName} {author?.lastName}
+            {displayName}
           </span>
           <span className="text-xs text-gray-400">
             {formatDistanceToNow(new Date(message.createdAt), {

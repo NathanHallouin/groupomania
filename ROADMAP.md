@@ -81,9 +81,14 @@ création + édition/suppression, réactions **côté API seulement**.
 >   inexistant retiré, et `toSocketJSON` expose maintenant le tableau `reactions` ;
 > - **lecture messages/canaux** : includes d'associations cross-service
 >   (`author`, `user`) retirés (l'identité vit dans un autre service).
->
-> Reste : enrichir les messages/membres avec les données d'auteur (nom, avatar via
-> user-service) côté client — aujourd'hui seul l'`authorId` est disponible.
+> - **enrichissement auteur** ✅ : hook `useUsersMap` (cache React Query) côté
+>   frontend → les messages affichent le nom/avatar de l'auteur (join `authorId`
+>   ↔ profil user-service), au lieu du seul `authorId`.
+> - **Gateway — bug critique corrigé** : `sanitizeObject` appelait
+>   `obj.hasOwnProperty()` sur `req.query` (prototype `null` en Express 5) →
+>   **toute requête avec query params renvoyait 500** (pagination, recherche, et
+>   même le chargement des messages `?limit=50`). Remplacé par
+>   `Object.prototype.hasOwnProperty.call`.
 
 ---
 
@@ -203,7 +208,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | Phase | Objectif | Épics |
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
-| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel (messages + typing) · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions (UI + API) · reste §2 DM/modération, §8 notifications |
+| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel · ✅ chaîne canaux/messages réparée · ✅ §2 Réactions · ✅ auteur des messages (nom/avatar) · ✅ gateway query params réparé · reste §2 DM/modération, §8 notifications |
 | **P2 — Comptes complets** | Parcours d'auth de bout en bout | §4 Auth (reset/verify), §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |

@@ -445,8 +445,10 @@ export class ValidationMiddleware {
 
     if (typeof obj === 'object') {
       const sanitized: any = {};
+      // En Express 5, req.query a un prototype null : utiliser Object.hasOwn
+      // (obj.hasOwnProperty n'existe pas sur ces objets).
       for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
           sanitized[key] = ValidationMiddleware.sanitizeObject(obj[key]);
         }
       }
