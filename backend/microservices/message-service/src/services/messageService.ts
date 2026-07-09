@@ -2,7 +2,7 @@ import { Message } from '../models/Message';
 import { Reaction } from '../models/Reaction';
 import { Channel } from '../models/Channel';
 import { ChannelMember } from '../models/ChannelMember';
-import { MessageAttributes, ReactionType, UserRole } from '../types';
+import { MessageAttributes, ReactionType, UserRole, ChannelMemberRole } from '../types';
 import { ValidationError, NotFoundError, UnauthorizedError } from '../middleware/errorHandler';
 import { RedisService } from './redisService';
 import { Op } from 'sequelize';
@@ -65,14 +65,14 @@ export class MessageService {
     }
 
     // Retrieve from database
+    // Note : pas d'include `author`/`user` — l'identité vit dans un autre service
+    // (pas de modèle User ici). Seules les associations locales sont chargées.
     const message = await Message.findByPk(messageId, {
       include: [
         {
           model: Reaction,
           as: 'reactions',
-          include: ['user'],
         },
-        'author',
         'channel',
       ],
     });
@@ -121,13 +121,12 @@ export class MessageService {
     // Retrieve messages
     const { count, rows } = await Message.findAndCountAll({
       where: whereConditions,
+      // Pas d'include `author`/`user` (identité dans un autre service).
       include: [
         {
           model: Reaction,
           as: 'reactions',
-          include: ['user'],
         },
-        'author',
       ],
       order: [['createdAt', 'DESC']],
       limit,
@@ -411,8 +410,9 @@ export class MessageService {
       return false;
     }
 
-    // Check if the user can write based on their channel role
-    return membership.canWrite;
+    // Le droit d'écriture découle du rôle : tout membre peut écrire sauf en
+    // lecture seule. (Il n'existe pas de colonne `canWrite` en base.)
+    return membership.role !== ChannelMemberRole.READ_ONLY;
   }
 
   /**

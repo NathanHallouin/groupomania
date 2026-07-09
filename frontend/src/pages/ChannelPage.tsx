@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLoaderData, useFetcher, useRevalidator } from 'react-router-dom';
 import { Hash, Settings, Users, Send, Smile, Paperclip } from 'lucide-react';
 import { Button, Avatar } from '../components/ui';
 import { useAuthStore } from '../stores/authStore';
+import { useChannelSocket } from '../hooks/useChannelSocket';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Message, Channel } from '../types';
@@ -19,6 +20,15 @@ export function ChannelPage() {
   const revalidator = useRevalidator();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Temps réel : recharge les messages quand le serveur signale un changement.
+  const handleRealtimeChange = useCallback(() => {
+    revalidator.revalidate();
+  }, [revalidator]);
+  const { typingUserIds, notifyTyping } = useChannelSocket(
+    channel.id,
+    handleRealtimeChange
+  );
 
   useEffect(() => {
     scrollToBottom();
@@ -87,6 +97,15 @@ export function ChannelPage() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Indicateur « en train d'écrire » (temps réel) */}
+      {typingUserIds.length > 0 && (
+        <div className="px-1 py-1 text-xs italic text-gray-400">
+          {typingUserIds.length === 1
+            ? "Quelqu'un est en train d'écrire…"
+            : `${typingUserIds.length} personnes sont en train d'écrire…`}
+        </div>
+      )}
+
       {/* Message input */}
       <fetcher.Form
         ref={formRef}
@@ -102,6 +121,7 @@ export function ChannelPage() {
               className="w-full px-4 py-3 pr-24 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               rows={1}
               onKeyDown={handleKeyDown}
+              onChange={() => notifyTyping()}
               required
             />
             <div className="absolute right-2 bottom-2 flex items-center gap-1">

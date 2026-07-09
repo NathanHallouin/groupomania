@@ -23,6 +23,7 @@ export class ChannelService {
   async createChannel(channelData: Partial<ChannelAttributes>, creatorId: number): Promise<Channel> {
     const transaction = await sequelize.transaction();
 
+    let channel: Channel;
     try {
       // Required data validation
       if (!channelData.name || !channelData.type) {
@@ -30,8 +31,9 @@ export class ChannelService {
       }
 
       // Create the channel
-      const channel = await Channel.create({
+      channel = await Channel.create({
         ...channelData,
+        ownerId: creatorId,
         createdBy: creatorId,
       } as ChannelAttributes, { transaction });
 
@@ -48,13 +50,14 @@ export class ChannelService {
       }, { transaction });
 
       await transaction.commit();
-
-      // Return the channel with associations
-      return await this.getChannelById(channel.id);
     } catch (error) {
       await transaction.rollback();
       throw error;
     }
+
+    // Lecture des associations APRÈS le commit : une erreur ici ne doit pas
+    // déclencher un rollback sur une transaction déjà finalisée.
+    return (await this.getChannelById(channel.id)) ?? channel;
   }
 
   /**

@@ -26,12 +26,21 @@ aucune dépendance `socket.io-client`** : la messagerie fonctionne en HTTP/polli
 uniquement.
 
 **Approfondir.**
-- 🔴⭐⭐⭐ Ajouter `socket.io-client`, un `useSocket()` (auth par JWT) et une couche
-  temps réel dans `channelStore`.
-- 🟡⭐⭐⭐ Messages en direct : réception/patch optimiste, réconciliation avec React Query.
-- 🟢⭐⭐ Indicateur « en train d'écrire… » (events `typing_*` déjà émis).
+- ✅ **FAIT** — `socket.io-client` ajouté, couche socket authentifiée par JWT
+  (`api/socket.ts`) + hook `useChannelSocket` (join/leave, écoute des events,
+  déconnexion auto au logout).
+- ✅ **FAIT** — Messages en direct : sur event `message_created/updated/deleted`
+  et `reaction_*`, la `ChannelPage` recharge via le loader react-router.
+- ✅ **FAIT** — Indicateur « en train d'écrire… » (`typing_start/stop` →
+  `user_typing`), affiché dans la `ChannelPage`.
 - 🟡⭐⭐ Présence en ligne / hors-ligne par utilisateur (dérivée des connexions socket).
-- 🟢⭐ Reconnexion automatique + file d'attente des messages hors-ligne.
+- 🟡⭐⭐ Réception/patch optimiste (append local) au lieu du rechargement complet.
+- 🟢⭐ Proxifier le WebSocket via le gateway (aujourd'hui connexion directe à `:3003`).
+
+> **Vérifié bout-en-bout** (2 clients socket + JWT réel) : connexion authentifiée
+> (bon/mauvais token), `join_channel`, indicateur de saisie **et** message reçus
+> **en direct** par l'autre client ; le message est persisté et relu via
+> `GET /api/messages/channel/:id`.
 
 ---
 
@@ -57,6 +66,20 @@ création + édition/suppression, réactions **côté API seulement**.
 - 🟢⭐ **Épingler / éditer** : indiquer « modifié », historique léger.
 - 🟢⭐ **Sécurité XSS** : `sanitize-html` est présent — vérifier qu'il est bien
   appliqué au rendu et à l'entrée.
+
+> **Corrections apportées (en débloquant le temps réel).** La création et l'envoi
+> passaient par des chemins cassés — désormais fonctionnels :
+> - création de canal : `ownerId` non renseigné, `type` incohérent entre le
+>   validateur (`text/voice/announcement`) et l'enum du modèle
+>   (`public/private/direct/group`) → aligné ; rollback tenté après commit → corrigé ;
+> - droit d'écriture basé sur une colonne `canWrite` inexistante → dérivé du `role`
+>   (read_only exclu) ;
+> - lecture des messages/canaux : `include` d'associations cross-service
+>   (`author`, `user`) inexistantes → retirés (l'identité vit dans un autre service).
+>
+> Reste : `getChannelById` inclut encore les membres via une association `user`
+> inexistante (l'API `POST /api/channels` renvoie 500 bien que le canal soit créé) ;
+> et enrichir les messages avec les données d'auteur (via user-service) côté client.
 
 ---
 
@@ -176,7 +199,7 @@ de notifications, alors que l'event socket `notification` est déjà émis.
 | Phase | Objectif | Épics |
 | ----- | -------- | ----- |
 | **P0 — Débloquer** ✅ | Faire booter le backend | ~~Prérequis~~ **FAIT** (`docs/STATUS.md`) |
-| **P1 — Rendre la messagerie vivante** | Le cœur du produit en temps réel | §1 Temps réel, §2 Réactions/DM, §8 notifications |
+| **P1 — Rendre la messagerie vivante** 🚧 | Le cœur du produit en temps réel | ✅ §1 Temps réel (messages + typing en direct, vérifié) · ✅ chaîne création/envoi de canal réparée · reste §2 Réactions/DM, §8 notifications |
 | **P2 — Comptes complets** | Parcours d'auth de bout en bout | §4 Auth (reset/verify), §5 Profils |
 | **P3 — Contenus riches** | Fichiers & recherche | §3 Pièces jointes, §7 Recherche |
 | **P4 — Pilotage** | Admin, modération, qualité | §6 Admin, §9 Tests/CI |

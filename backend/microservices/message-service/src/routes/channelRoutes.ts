@@ -25,7 +25,7 @@ const createChannelValidation = [
     .isLength({ max: 500 })
     .withMessage('La description ne peut pas dépasser 500 caractères'),
   body('type')
-    .isIn(['text', 'voice', 'announcement'])
+    .isIn(['public', 'private', 'direct', 'group'])
     .withMessage('Type de canal invalide'),
   body('isPrivate')
     .optional()

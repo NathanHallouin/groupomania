@@ -329,7 +329,7 @@ export interface CreateChannelRequest {
   /** Channel description */
   description?: string;
   /** Channel type */
-  type?: 'text' | 'voice' | 'announcement';
+  type?: 'public' | 'private' | 'direct' | 'group';
   /** Whether the channel is private */
   isPrivate?: boolean;
 }
