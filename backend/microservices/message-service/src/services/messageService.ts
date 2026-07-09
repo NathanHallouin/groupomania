@@ -333,12 +333,10 @@ export class MessageService {
     const { page = 1, limit = 20 } = options;
     const offset = (page - 1) * limit;
 
-    // Build search conditions
+    // Build search conditions. Recherche sur le contenu (il n'existe pas de
+    // colonne `mentions` : les mentions vivent dans `metadata`).
     const whereConditions: any = {
-      [Op.or]: [
-        { content: { [Op.iLike]: `%${query}%` } },
-        { mentions: { [Op.contains]: [query] } },
-      ],
+      content: { [Op.iLike]: `%${query}%` },
     };
 
     if (channelId) {
@@ -352,13 +350,12 @@ export class MessageService {
     // Retrieve messages
     const { count, rows } = await Message.findAndCountAll({
       where: whereConditions,
+      // Pas d'include `author`/`user` (identité dans un autre service).
       include: [
         {
           model: Reaction,
           as: 'reactions',
-          include: ['user'],
         },
-        'author',
         'channel',
       ],
       order: [['createdAt', 'DESC']],

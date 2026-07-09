@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import { Link, useLoaderData, useSearchParams } from 'react-router-dom';
-import { Search, Hash } from 'lucide-react';
+import { Search, Hash, MessageSquare } from 'lucide-react';
 import { Card, Avatar } from '../components/ui';
-import type { User, Channel } from '../types';
+import { useUsersMap } from '../hooks/useUsers';
+import type { User, Channel, Message } from '../types';
 
 interface LoaderData {
   q: string;
   users: User[];
   channels: Channel[];
+  messages: Message[];
 }
 
 export function SearchPage() {
-  const { q, users, channels } = useLoaderData() as LoaderData;
+  const { q, users, channels, messages } = useLoaderData() as LoaderData;
   const [, setSearchParams] = useSearchParams();
   const [input, setInput] = useState(q);
+  const usersMap = useUsersMap();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,7 @@ export function SearchPage() {
     setSearchParams(value ? { q: value } : {});
   };
 
-  const total = users.length + channels.length;
+  const total = users.length + channels.length + messages.length;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -101,6 +104,37 @@ export function SearchPage() {
                     </Card>
                   </Link>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Messages */}
+          {messages.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
+                Messages
+              </h2>
+              <div className="space-y-2">
+                {messages.map((m) => {
+                  const author = usersMap.get(m.authorId);
+                  return (
+                    <Link key={m.id} to={`/channels/${m.channelId}`}>
+                      <Card className="hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                            <MessageSquare className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-900 line-clamp-2">{m.content}</p>
+                            <p className="text-xs text-gray-400">
+                              {author ? `${author.firstName} ${author.lastName}` : 'Utilisateur'}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           )}

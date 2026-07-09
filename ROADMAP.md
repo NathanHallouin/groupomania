@@ -192,10 +192,11 @@ des règles admin/moderator. Aucune interface d'administration dédiée.
 dans le `Header` (non branchée globalement).
 
 **Approfondir.**
-- ✅ **FAIT (utilisateurs + canaux)** — Recherche **globale** depuis le Header :
-  nouvelle `SearchPage` (route `/search?q=`) qui interroge `users/search` et
-  `channels/search` et affiche les résultats groupés (le lien du Header était mort).
-  Reste : inclure les messages (`messages/search`).
+- ✅ **FAIT (utilisateurs + canaux + messages)** — Recherche **globale** depuis le
+  Header : `SearchPage` (route `/search?q=`) qui interroge `users/search`,
+  `channels/search` et `messages/search` et affiche les résultats groupés (le lien
+  du Header était mort). Bugs corrigés dans `messages/search` : include `user`
+  cross-service inexistant + filtre sur une colonne `mentions` inexistante.
 - 🟢⭐⭐ Filtres & facettes (département, type de canal, auteur, date `date-fns`).
 - 🟡⭐ Recherche plein-texte Postgres (index GIN) sur messages.
 

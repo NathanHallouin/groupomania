@@ -209,9 +209,10 @@ export const router = createBrowserRouter([
           const q = (url.searchParams.get('q') || '').trim();
           if (!q) return { q, users: [], channels: [] };
 
-          const [usersRes, channelsRes] = await Promise.all([
+          const [usersRes, channelsRes, messagesRes] = await Promise.all([
             usersApi.search(q, 20).catch(() => null),
             channelsApi.search(q, { limit: 20 }).catch(() => null),
+            messagesApi.search(q, { limit: 20 }).catch(() => null),
           ]);
 
           return {
@@ -224,6 +225,7 @@ export const router = createBrowserRouter([
               (channelsRes?.data as { channels?: unknown[] } | undefined)?.channels ??
               (Array.isArray(channelsRes?.data) ? channelsRes?.data : []) ??
               [],
+            messages: messagesRes?.data?.messages ?? [],
           };
         },
         lazy: () => import('./pages/SearchPage').then(m => ({ Component: m.SearchPage })),
