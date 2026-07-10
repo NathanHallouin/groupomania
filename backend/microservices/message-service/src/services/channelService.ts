@@ -490,7 +490,22 @@ export class ChannelService {
       return true;
     }
 
-    // Check channel membership
+    const channel = await Channel.findByPk(channelId);
+    if (!channel) {
+      return false;
+    }
+
+    // Canal public : visible par tout utilisateur authentifié (sans être membre).
+    if (channel.type === ChannelType.PUBLIC) {
+      return true;
+    }
+
+    // Propriétaire
+    if (channel.ownerId === userId) {
+      return true;
+    }
+
+    // Sinon (privé / groupe / direct) : appartenance requise
     const membership = await ChannelMember.findOne({
       where: { channelId, userId },
     });
@@ -501,6 +516,27 @@ export class ChannelService {
   /**
    * Search public channels
    */
+  /**
+   * Liste les canaux publics (pour la découverte / rejoindre un canal).
+   */
+  async getPublicChannels(
+    options: { page?: number; limit?: number } = {}
+  ): Promise<{ channels: Channel[]; total: number }> {
+    const { page = 1, limit = 20 } = options;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Channel.findAndCountAll({
+      where: { type: ChannelType.PUBLIC },
+      include: [{ model: ChannelMember, as: 'members', attributes: ['id'] }],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+      distinct: true, // count les canaux, pas les lignes de jointure des membres
+    });
+
+    return { channels: rows, total: count };
+  }
+
   async searchPublicChannels(
     query: string,
     options: {

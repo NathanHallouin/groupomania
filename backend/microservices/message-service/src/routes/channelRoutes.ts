@@ -123,6 +123,13 @@ const searchValidation = [
 router.post('/', createChannelValidation, channelController.createChannel);
 
 /**
+ * @route GET /api/channels
+ * @desc Lister les canaux publics (découverte)
+ * @access Privé
+ */
+router.get('/', channelController.getChannels);
+
+/**
  * @route GET /api/channels/search
  * @desc Rechercher des canaux publics
  * @access Privé

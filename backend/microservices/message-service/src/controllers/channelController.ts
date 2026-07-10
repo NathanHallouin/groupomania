@@ -121,6 +121,35 @@ export class ChannelController {
   });
 
   /**
+   * List public channels (discovery). Renvoie data: Channel[] + meta.
+   */
+  getChannels = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+    try {
+      const result = await this.channelService.getPublicChannels({ page, limit });
+
+      res.json({
+        success: true,
+        data: result.channels.map(channel => serialize(channel)),
+        meta: {
+          page,
+          limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limit),
+        },
+      });
+    } catch (error: any) {
+      console.error('Error listing channels:', error);
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || 'Error listing channels',
+      });
+    }
+  });
+
+  /**
    * Get user channels
    */
   getUserChannels = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {

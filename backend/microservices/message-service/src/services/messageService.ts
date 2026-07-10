@@ -2,7 +2,7 @@ import { Message } from '../models/Message';
 import { Reaction } from '../models/Reaction';
 import { Channel } from '../models/Channel';
 import { ChannelMember } from '../models/ChannelMember';
-import { MessageAttributes, ReactionType, UserRole, ChannelMemberRole } from '../types';
+import { MessageAttributes, ReactionType, UserRole, ChannelMemberRole, ChannelType } from '../types';
 import { ValidationError, NotFoundError, UnauthorizedError } from '../middleware/errorHandler';
 import { RedisService } from './redisService';
 import { Op } from 'sequelize';
@@ -378,7 +378,21 @@ export class MessageService {
       return true;
     }
 
-    // Check channel membership
+    const channel = await Channel.findByPk(channelId);
+    if (!channel) {
+      return false;
+    }
+
+    // Canal public : lecture ouverte à tout utilisateur authentifié.
+    if (channel.type === ChannelType.PUBLIC) {
+      return true;
+    }
+
+    if (channel.ownerId === userId) {
+      return true;
+    }
+
+    // Sinon : appartenance requise
     const membership = await ChannelMember.findOne({
       where: { channelId, userId },
     });
