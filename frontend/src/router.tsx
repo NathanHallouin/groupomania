@@ -148,6 +148,22 @@ export const router = createBrowserRouter([
         lazy: () => import('./pages/ChannelPage').then(m => ({ Component: m.ChannelPage })),
       },
       {
+        path: 'channels/:channelId/join',
+        action: async ({ params }: ActionFunctionArgs) => {
+          const channelId = Number(params.channelId);
+          await channelsApi.join(channelId);
+          return redirect(`/channels/${channelId}`);
+        },
+      },
+      {
+        path: 'channels/:channelId/leave',
+        action: async ({ params }: ActionFunctionArgs) => {
+          const channelId = Number(params.channelId);
+          await channelsApi.leave(channelId);
+          return redirect('/channels');
+        },
+      },
+      {
         path: 'users',
         loader: async ({ request }: LoaderFunctionArgs) => {
           const url = new URL(request.url);
